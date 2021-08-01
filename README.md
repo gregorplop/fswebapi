@@ -3,4 +3,4 @@
 
 There are two things of interest in this application:
 1. The application itself, doing what it does
-2. The ipservercore module: a template for a threaded web api server
+2. The ipservercore: a template for a threaded web server for building web APIs
