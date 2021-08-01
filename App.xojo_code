@@ -22,16 +22,30 @@ Inherits ServiceApplication
 		  // occurs. So to be consistent, let's just call 
 		  // quit with our exit code.
 		  
-		  RootFolder = new FolderItem("C:\Shared" , FolderItem.PathModes.Native)
-		  
-		  
-		  ipsc_lib.debug = true
 		  Server = new ipsc_Server 
 		  
-		  Server.Port = 8080
+		  dim ExitMsg as string
+		  dim ExitCode as Integer
+		  
+		  dim argsdict as Dictionary = ParseCmdLineArgs(args)
+		  
+		  // process startup parameters
+		  if not ProcessCmdLineArgs(argsdict , ExitMsg , ExitCode) then
+		    System.DebugLog(ExitMsg + " --The service will now quit!")
+		    Print ExitMsg + " --The service will now quit!"
+		    Quit(ExitCode)
+		  end if
+		  
 		  Server.Listen
 		  
-		  print "Server started - listening at " + Server.Port.ToString
+		  print "Working with root folder : " + RootFolder.NativePath
+		  print "Server listening at port : " + Server.Port.ToString
+		  print "Debug mode set to        : " + ipsc_Lib.Debug.ToString
+		  Print "fswebapi version         : " + app.Version
+		  Print "ipservercore version     : " + ipsc_Lib.Version
+		  Print "======================================================="
+		  print ""
+		  
 		  
 		  do // main loop
 		    
@@ -61,6 +75,95 @@ Inherits ServiceApplication
 
 
 	#tag Method, Flags = &h0
+		Function ParseCmdLineArgs(args() as string) As Dictionary
+		  // WARNING: This mechanism has the following limitation:
+		  // no single parameter should not contain a space!
+		  // example: --debug , --rootfolder=c:\shared : THESE ARE OK
+		  // counter-example: --rootfolder = "c:\my shared files" : THIS CANNOT BE PARSED SUCCESSFULLY 
+		  
+		  dim argDictionary as new Dictionary
+		  
+		  for i as Integer = 1 to args.LastIndex
+		    if args(i) = args(0) then exit for i  // workaround for duplicate args bug
+		    if args(i).Left(2) <> "--" then Continue for i // all parameters start with "--"
+		    
+		    if args(i).CountFields("=") = 1 then  // just the presense of a switch
+		      
+		      argDictionary.Value(args(i).ReplaceAll("--" , "").Lowercase) = true // switches always carry a boolean true value
+		      
+		    else // assumes it's a key-value pair that does not contain an "=" as part of the value
+		      
+		      argDictionary.Value(args(i).NthField("=" , 1).ReplaceAll("--" , "").Lowercase) = args(i).NthField("=" , 2)
+		      
+		    end if
+		    
+		  next i
+		  
+		  Return argDictionary
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function ProcessCmdLineArgs(argsdict as Dictionary, byref ErrorMsg as string, byref ExitCode as integer) As Boolean
+		  // returns false if a necessary parameter is missing or invalid. Error message on ErrorMsg string
+		  // returns true if all okay
+		  // sets all appropriate application-level properties according to input parameters+
+		  
+		  ErrorMsg = ""
+		  ExitCode = 0
+		  
+		  // rootfolder
+		  if not argsdict.HasKey("rootfolder") then
+		    ErrorMsg =  "No --rootfolder startup parameter found!"
+		    ExitCode = 1
+		    Return false
+		  else
+		    RootFolder = new FolderItem(argsdict.Value("rootfolder").StringValue , FolderItem.PathModes.Native)
+		    if IsNull(RootFolder) then  // rootfolder is null
+		      ErrorMsg = "Rootfolder path is invalid!"
+		      ExitCode = 2
+		      Return false
+		    else
+		      if not RootFolder.Exists then  // rootfolder does not exist
+		        ErrorMsg = "Rootfolder does not exist!"
+		        ExitCode = 3
+		        Return false
+		      end if
+		      if not RootFolder.IsFolder then  //rootfolder is not a folder
+		        ErrorMsg = "Defined rootfolder is not a folder!"
+		        ExitCode = 4
+		        Return false
+		      end if
+		    end if
+		  end if
+		  
+		  // check for debug mode flag
+		  if argsdict.HasKey("debug") then // debug logging mode on --service will be quite verbose on the console and the debug log
+		    ipsc_Lib.debug = true
+		  else
+		    ipsc_Lib.Debug = false
+		  end if
+		  
+		  // server port
+		  if not argsdict.HasKey("port") then
+		    ErrorMsg =  "No --port startup parameter found!"
+		    ExitCode = 5
+		    Return false
+		  else
+		    Server.Port = argsdict.Value("port").IntegerValue
+		    if server.Port < 1 or Server.Port > 65535 then
+		      ErrorMsg = "Invalid port value!"
+		      ExitCode = 6
+		      Return False
+		    end if
+		  end if
+		  
+		  Return True
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub RouteRequest(WorkerThread as ipsc_ConnectionThread)
 		  select case WorkerThread.SocketRef.RequestPath.NthField("/" , 2).Lowercase
 		    
@@ -79,6 +182,17 @@ Inherits ServiceApplication
 		End Sub
 	#tag EndMethod
 
+
+	#tag Note, Name = Endpoints
+		implemented endpoints:
+		
+		/files/(full filename path)
+		/folders/(folder path)
+		
+		all paths are relative to the root folder defined with the --rootfolder command line parameter
+		
+		
+	#tag EndNote
 
 	#tag Note, Name = MIT License
 		MIT License

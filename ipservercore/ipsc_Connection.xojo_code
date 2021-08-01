@@ -53,6 +53,7 @@ Inherits SSLSocket
 		Sub Error(err As RuntimeException)
 		  DebugMsg("connection " + Handle.ToString + " - code = " + err.ErrorNumber.ToString + " message = " + err.Message, CurrentMethodName , true)
 		  
+		  
 		  select case err.ErrorNumber
 		  case 102  // connection lost. might be an error or a completed request
 		    

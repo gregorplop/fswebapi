@@ -254,7 +254,7 @@ Protected Module ipsc_Lib
 	#tag Constant, Name = SocketChunkSize, Type = Double, Dynamic = False, Default = \"1048576", Scope = Protected
 	#tag EndConstant
 
-	#tag Constant, Name = Version, Type = String, Dynamic = False, Default = \"0.6", Scope = Protected
+	#tag Constant, Name = Version, Type = String, Dynamic = False, Default = \"0.9", Scope = Protected
 	#tag EndConstant
 
 
