@@ -46,9 +46,11 @@ Protected Class endpoint_folders
 		  
 		  folder = folder.Child(path(path.LastIndex))
 		  
-		  if not folder.IsFolder then
-		    WorkerThread.SocketRef.RespondInError(422 , "Alleged folder is actually an existing file") // unprocessable entity
-		    Return
+		  if folder.Exists then
+		    if not folder.IsFolder then
+		      WorkerThread.SocketRef.RespondInError(422 , "Alleged folder is actually an existing file") // unprocessable entity
+		      Return
+		    end if
 		  end if
 		  
 		  // ========== setup complete: we know what folderitem we are referring to now ===========
@@ -101,13 +103,86 @@ Protected Class endpoint_folders
 
 	#tag Method, Flags = &h21
 		Private Sub LIST()
+		  // returns a tab-delimited list of files with the following fields
+		  // 1=filename , 2=fs object type{file,dir,alias} , 3=size(only for files) , 4=creation timestamp , 5=modification timestamp
+		  
+		  dim fsobjRecord(4) as String 
+		  dim ListContent as String
+		  dim tab as String = Chr(9)
+		  dim objtype as string
+		  dim fsobj as FolderItem
+		  
+		  if not folder.Exists then
+		    WorkerThread.SocketRef.RespondInError(404 , "Folder does not exist")
+		    Return
+		  end if
+		  
+		  dim fsobjectCount as Integer = folder.Count
+		  
+		  if fsobjectCount = 0 then
+		    WorkerThread.SocketRef.PrepareResponseHeaders_MethodExecuted
+		    WorkerThread.SocketRef.RespondOK(false)
+		    Return
+		  end if
+		  
+		  try
+		    
+		    for i as Integer = 0 to fsobjectCount - 1
+		      
+		      fsobj = new FolderItem(folder.ChildAt(i , false))
+		      
+		      fsobjRecord(0) = fsobj.Name
+		      
+		      if fsobj.IsAlias then
+		        fsobjRecord(1) = "alias"
+		      ElseIf fsobj.IsFolder then
+		        fsobjRecord(1) = "dir"
+		      Else 
+		        fsobjRecord(1) = "file"
+		      end if
+		      
+		      fsobjRecord(2) = if(fsobjRecord(1) = "file" , fsobj.Length.ToString , "")
+		      
+		      fsobjRecord(3) = fsobj.CreationDateTime.SQLDateTime
+		      fsobjRecord(4) = fsobj.ModificationDateTime.SQLDateTime
+		      
+		      ListContent = ListContent + String.FromArray(fsobjRecord , tab) + EndOfLine.Windows
+		      
+		    next i
+		    
+		  Catch e as IOException
+		    WorkerThread.SocketRef.RespondInError(422 , "Error compiling file list, code " + e.ErrorNumber.ToString)
+		    Return
+		  Catch ee as NilObjectException
+		    WorkerThread.SocketRef.RespondInError(422 , "Error compiling file list, FS object not accessible")
+		    Return
+		  end try
+		  
+		  WorkerThread.SocketRef.PrepareResponseHeaders_SendTextReply(ListContent.Bytes)
+		  WorkerThread.SocketRef.RespondOK(true)
+		  
+		  WorkerThread.SocketRef.Write(ListContent)
+		  WorkerThread.SocketRef.LastDataPacket2Send = true
+		  
+		  
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Sub POST()
-		  
+		  try
+		    
+		    folder.CreateFolder
+		    
+		    WorkerThread.SocketRef.PrepareResponseHeaders_MethodExecuted
+		    WorkerThread.SocketRef.RespondOK(false)
+		    
+		  Catch e as IOException
+		    
+		    WorkerThread.SocketRef.RespondInError(422 , "Error when creating folder, code " + e.ErrorNumber.ToString) // unprocessable entity
+		    
+		  end try
 		End Sub
 	#tag EndMethod
 
@@ -135,7 +210,6 @@ Protected Class endpoint_folders
 		    
 		  Catch e as IOException
 		    WorkerThread.SocketRef.RespondInError(403 , "Error renaming """ + oldFoldername + """ to """ + newFoldername + """ , error code " + e.ErrorNumber.ToString)
-		    Return
 		  end try
 		  
 		  

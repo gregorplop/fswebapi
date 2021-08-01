@@ -57,7 +57,7 @@ Inherits SSLSocket
 		  select case err.ErrorNumber
 		  case 102  // connection lost. might be an error or a completed request
 		    
-		    //GetWorker.Kill = true  // causes an nilobject exception
+		    // not implemented
 		    
 		  else
 		    // not implemented
@@ -68,8 +68,6 @@ Inherits SSLSocket
 	#tag Event
 		Sub SendComplete(UserAborted As Boolean)
 		  DebugMsg("connection " + Handle.ToString + " - UserAborted = " + UserAborted.ToString, CurrentMethodName , true)
-		  
-		  //if GetWorker.ThreadState = Thread.ThreadStates.Paused then GetWorker.Resume // go on sending stuff
 		  
 		  if LastDataPacket2Send then
 		    
@@ -176,6 +174,22 @@ Inherits SSLSocket
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub PrepareResponseHeaders_SendTextReply(ByteSize as Integer)
+		  // prepares default headers for sending a binary file
+		  
+		  ResponseHeaders = new Dictionary
+		  
+		  ResponseHeaders.Value("Date") = ipsc_Lib.DateToRFC1123(nil)
+		  ResponseHeaders.Value("Server") = "ipscservercore/" + ipsc_Lib.Version
+		  ResponseHeaders.Value("Connection") = "close"
+		  ResponseHeaders.Value("Content-Length") = ByteSize
+		  ResponseHeaders.Value("Content-Type") = "text/plain"
+		  ResponseHeaders.Value("Cache-Control") = "no-store"
+		  
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h21
 		Private Function RecognizeRequest() As Boolean
 		  // takes RequestRaw and tries to fill:
@@ -253,7 +267,7 @@ Inherits SSLSocket
 		Sub RespondOK(ContentFollows as Boolean)
 		  // requires the appropriate ResponseHeaders 
 		  if ResponseHeaders.KeyCount = 0 then
-		    RespondInError(500 , "No response headers set for proper response")
+		    Raise new RuntimeException("Tried to respond OK without any response headers set!" , 99)
 		    Return
 		  end if
 		  

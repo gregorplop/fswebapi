@@ -212,7 +212,6 @@ Protected Class endpoint_files
 		    end if
 		    
 		    WorkerThread.SocketRef.RespondInError(500 , "File IO Error: " + e.ErrorNumber.ToString) // internal server error
-		    Return
 		  end try
 		  
 		End Sub
@@ -242,7 +241,6 @@ Protected Class endpoint_files
 		    
 		  Catch e as IOException
 		    WorkerThread.SocketRef.RespondInError(403 , "Error renaming """ + oldFilename + """ to """ + newFilename + """ , error code " + e.ErrorNumber.ToString)
-		    Return
 		  end try
 		  
 		  

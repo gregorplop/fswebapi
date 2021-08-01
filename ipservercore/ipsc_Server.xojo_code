@@ -26,6 +26,9 @@ Inherits ServerSocket
 		Sub Constructor()
 		  Workers = new Dictionary
 		  
+		  MinimumSocketsAvailable = 4
+		  MaximumSocketsConnected = 50
+		  
 		  CleanupTimer = new Timer
 		  CleanupTimer.RunMode = Timer.RunModes.Off
 		  CleanupTimer.Period = 1000
@@ -50,9 +53,9 @@ Inherits ServerSocket
 		    next i
 		    
 		  Catch e as KeyNotFoundException
-		    Return  // spurious error due to edge case timing, no problem
+		    Return  // error due to edge case timing, no problem
 		  Catch ee as NilObjectException
-		    Return  // same with the above
+		    Return  // same as the above
 		  end try
 		  
 		  
