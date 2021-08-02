@@ -51,7 +51,7 @@ Inherits ServiceApplication
 		    
 		    DoEvents
 		    
-		  loop Until kill  = true
+		  loop Until kill = true
 		  
 		  
 		  Quit(0)
