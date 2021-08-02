@@ -51,7 +51,7 @@ At this point, note the following:
 + At this moment, root folders containing spaces are not allowed in the --rootfolder parameter
 
 ## The ipservercore library
-The application is based on an implementation of the HTTP/1.1 protocol from scratch. There is no reliance on the Xojo Web Framework. This allows for higher performance and more flexibility when implementing a specific application's logic, but at the cost of less-than-airtight abstraction from the underlying protocol.
+The application is based on an implementation of the HTTP/1.1 protocol from scratch, the ipservercore. There is no reliance on the Xojo Web Framework. This allows for higher performance and more flexibility when implementing a specific application's logic, but at the cost of less-than-airtight abstraction from the underlying protocol.
 In this way, the ipservercore library is by no means a framework operating on [the Hollywood principle](https://en.wikipedia.org/wiki/Inversion_of_control) , like the Xojo Web Frameworks 1&2. It is just a template providing a skeleton implementation of HTTPS, around which you can build your application's business logic. A similar (but more elaborate) effort, was Tim Dietrich's Aloe Express project, which is unfortunately long defunct.
 
 ### Main features
