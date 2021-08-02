@@ -14,15 +14,15 @@ There are two endpoints, one for files and one for folders. You can see below a 
 
 | Endpoint   |   Method     | URL parameters required |  Description  |
 | ---------- | ------------ | ----------------------- | ------------- |
-| /files/{full path to file} | GET | none | Download the file |
-| /files/{full path to file} | POST | none | Upload a file if not already exists |
-| /files/{full path to file} | PUT | none | Upload a file, overwrite if exists |
-| /files/{full path to file} | DELETE | none | Delete the file |
-| /files/{full path to file} | RENAME | **newname** | Rename the file to *newname* value |
-| /folders/{full path to folder} | POST | none | Create the folder |
-| /folders/{full path to folder} | LIST | none | Receive a tab-delimited list of the folder contents |
-| /folders/{full path to folder} | DELETE | none | Delete the folder if empty |
-| /folders/{full path to folder} | RENAME | **newname** | Rename the folder to *newname* value |
+| /files/{path to file} | GET | none | Download the file |
+| /files/{path to file} | POST | none | Upload a file if not already exists |
+| /files/{path to file} | PUT | none | Upload a file, overwrite if exists |
+| /files/{path to file} | DELETE | none | Delete the file |
+| /files/{path to file} | RENAME | **newname** | Rename the file to *newname* value |
+| /folders/{path to folder} | POST | none | Create the folder |
+| /folders/{path to folder} | LIST | none | Receive a tab-delimited list of the folder contents |
+| /folders/{path to folder} | DELETE | none | Delete the folder if empty |
+| /folders/{path to folder} | RENAME | **newname** | Rename the folder to *newname* value |
 
 ### Server command line parameters
 At this point, the application needs to know two things: the root folder that's going to make accessible and the port it's going to be listening to. Optionally, it can be put in verbose (or debug) mode, printing messages when internal events occur.
@@ -66,6 +66,6 @@ Ah, and by the way, the ip- in the name, it's not Internet Protocol. It's someth
 All this is just a test for something bigger to come. As well as work that there was no point in keeping to myself. I'd be more than happy if you:
 + Find your uses for fswebapi.
 + Report bugs that you came across, I'll try to fix them.
-+ Suggest improvements, make comments, especially on ipservercore. I'll listen to you very carefully.
++ Suggest improvements, make comments, especially on ipservercore. I'll listen to you carefully.
 + Fork the project and do whatever you want with it!
 
