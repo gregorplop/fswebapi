@@ -66,6 +66,6 @@ Ah, and by the way, the ip- in the name, it's not Internet Protocol. It's someth
 All this is just a test for something bigger to come. As well as work that there was no point in keeping to myself. I'd be more than happy if you:
 + Find your uses for fswebapi.
 + Report bugs that you came across, I'll try to fix them.
-+ Suggest improvements, make comments, especially on ipservercore. I'll listen to you carefully.
++ Suggest improvements, make comments, especially on ipservercore. I'll listen carefully.
 + Fork the project and do whatever you want with it!
 
