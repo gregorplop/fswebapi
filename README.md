@@ -57,7 +57,7 @@ In this way, the ipservercore library is by no means a framework operating on [t
 ### Main features
 + Each successfully recognized incoming request maintains an open socket and fires up a thread with access to that socket. This is the Worker.
 + The Worker is like an empty canvas for the application developer: She decides how and when the request is going to be parsed and responded to.
-+ As a consequence, ipservercore does not force a program flow paradigm: you can do things synchronously or asynchronously if you plan things carefully.
++ As a consequence, ipservercore does not force a program flow paradigm: you can do things synchronously or asynchronously if you plan carefully.
 
 **Essentially, the fswebapi application is a playground/tutorial on how to use ipservercore, as well as a testbed on which the library's shortcomings will come to the surface!**    
 Ah, and by the way, the ip- in the name, it's not Internet Protocol. It's something else :)
