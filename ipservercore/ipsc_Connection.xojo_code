@@ -180,8 +180,8 @@ Inherits SSLSocket
 		Private Function RecognizeRequest() As Boolean
 		  // takes RequestRaw and tries to fill:
 		  // RequestVerb , RequestPath , RequestProtocol , RequestContentLength
-		  // if malformed request then returns false and error message on ErrorMsg
-		  // if all ok then returns true and empty ErrorMsg
+		  // if malformed request then returns false
+		  // if all ok then returns true
 		  
 		  dim headerLines(-1) as String = RequestRaw.Split(EndOfLine.Windows)
 		  
@@ -199,7 +199,7 @@ Inherits SSLSocket
 		    RequestPath = RequestPath.NthField("?" , 1)
 		  end if
 		  
-		  if RequestProtocol.Left(5) <> "HTTP/" then Return False
+		  if RequestProtocol <> "HTTP/1.1" then Return False
 		  
 		  if RequestPath = "/" then RequestPath = "" // just for the aesthetics of it
 		  
