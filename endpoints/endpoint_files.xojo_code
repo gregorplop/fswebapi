@@ -137,6 +137,8 @@ Protected Class endpoint_files
 		    
 		  Catch e as IOException
 		    
+		    stream.Close
+		    
 		    if not Readable or WorkerThread.BytesSent = 0 then // nothing has been sent, we can respond in error
 		      WorkerThread.SocketRef.RespondInError(423 , "Unreadable file , IO error " + e.ErrorNumber.ToString)  // locked
 		      Return
@@ -144,6 +146,10 @@ Protected Class endpoint_files
 		    
 		    // we got an io error while we had already started sending an OK response
 		    // we just kill the connection and hope the client can detect it's incomplete
+		    
+		    WorkerThread.SocketRef.Disconnect
+		    WorkerThread.SocketRef.Close
+		    Return
 		    
 		  end try
 		  

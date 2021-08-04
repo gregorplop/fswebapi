@@ -93,6 +93,26 @@ Inherits ServerSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
+		SSLCertificateFile As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		SSLCertificatePassword As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		SSLCertificateRejectionFile As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		SSLConnectionType As SSLSocket.SSLConnectionTypes
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		SSLEnabled As Boolean
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
 		Workers As Dictionary
 	#tag EndProperty
 
