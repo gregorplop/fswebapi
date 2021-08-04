@@ -53,15 +53,15 @@ Inherits SSLSocket
 		Sub Error(err As RuntimeException)
 		  DebugMsg("connection " + Handle.ToString + " - code = " + err.ErrorNumber.ToString + " message = " + err.Message, CurrentMethodName , true)
 		  
-		  
 		  select case err.ErrorNumber
 		  case 102  // connection lost. might be an error or a completed request
-		    
 		    // not implemented
-		    
 		  else
 		    // not implemented
 		  end select
+		  
+		  close  // this has proven necessary here, prevents freeze on dropped connection while GET:/files/
+		  
 		End Sub
 	#tag EndEvent
 
@@ -127,20 +127,6 @@ Inherits SSLSocket
 		  end try
 		  
 		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub PrepareResponseHeaders_MethodExecuted()
-		  // prepares default headers for method executed
-		  
-		  ResponseHeaders = new Dictionary
-		  
-		  ResponseHeaders.Value("Date") = ipsc_Lib.DateToRFC1123(nil)
-		  ResponseHeaders.Value("Server") = "ipscservercore/" + ipsc_Lib.Version
-		  ResponseHeaders.Value("Connection") = "close"
-		  ResponseHeaders.Value("Cache-Control") = "no-store"
-		  
-		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
@@ -284,6 +270,34 @@ Inherits SSLSocket
 		  Write(response)
 		  
 		  if LastDataPacket2Send then Flush
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RespondOK(optional TextContent as string = "")
+		  dim response as String = "HTTP/1.1 200 OK" + EndOfLine.Windows
+		  
+		  response = response + "Date: " + ipsc_Lib.DateToRFC1123(nil) + EndOfLine.Windows // now
+		  Response = response + "Server: ipscservercore/" + ipsc_Lib.Version + EndOfLine.Windows
+		  response = response + "Connection: close" + EndOfLine.Windows
+		  
+		  if TextContent <> "" then
+		    response = response + "Content-Type: text/plain" + EndOfLine.Windows
+		    response = response + "Content-Length: " + TextContent.Bytes.ToString + EndOfLine.Windows
+		  end if
+		  
+		  response = response + EndOfLine.Windows
+		  
+		  if TextContent <> "" then
+		    response = response + TextContent
+		  end if
+		  
+		  LastDataPacket2Send = true
+		  
+		  Write(response)
+		  Flush
+		  
 		  
 		End Sub
 	#tag EndMethod

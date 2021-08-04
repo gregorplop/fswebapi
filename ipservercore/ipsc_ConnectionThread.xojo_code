@@ -24,7 +24,7 @@ Inherits Thread
 	#tag Method, Flags = &h0
 		Sub Constructor(byref socket as ipsc_Connection)
 		  SocketRef = socket
-		  Priority = 1  // adjust to taste
+		  Priority = 2  // adjust to taste
 		  
 		End Sub
 	#tag EndMethod
@@ -62,7 +62,6 @@ Inherits Thread
 	#tag Property, Flags = &h0
 		#tag Note
 			Flag to indicate that the thread has run.
-			
 		#tag EndNote
 		Fired As Boolean = false
 	#tag EndProperty

@@ -77,8 +77,7 @@ Protected Class endpoint_folders
 		  fileError = DeleteFSobject(folder)
 		  
 		  if fileError = 0 then
-		    WorkerThread.SocketRef.PrepareResponseHeaders_MethodExecuted
-		    WorkerThread.SocketRef.RespondOK(false)
+		    WorkerThread.SocketRef.RespondOK
 		  else
 		    WorkerThread.SocketRef.RespondInError(422 , "Error deleting file, code " + fileError.ToString)
 		  end if
@@ -120,8 +119,7 @@ Protected Class endpoint_folders
 		  dim fsobjectCount as Integer = folder.Count
 		  
 		  if fsobjectCount = 0 then
-		    WorkerThread.SocketRef.PrepareResponseHeaders_MethodExecuted
-		    WorkerThread.SocketRef.RespondOK(false)
+		    WorkerThread.SocketRef.RespondOK
 		    Return
 		  end if
 		  
@@ -175,8 +173,7 @@ Protected Class endpoint_folders
 		    
 		    folder.CreateFolder
 		    
-		    WorkerThread.SocketRef.PrepareResponseHeaders_MethodExecuted
-		    WorkerThread.SocketRef.RespondOK(false)
+		    WorkerThread.SocketRef.RespondOK
 		    
 		  Catch e as IOException
 		    
@@ -205,8 +202,7 @@ Protected Class endpoint_folders
 		    
 		    folder.Name = newFoldername
 		    
-		    WorkerThread.SocketRef.PrepareResponseHeaders_MethodExecuted
-		    WorkerThread.SocketRef.RespondOK(false)
+		    WorkerThread.SocketRef.RespondOK
 		    
 		  Catch e as IOException
 		    WorkerThread.SocketRef.RespondInError(403 , "Error renaming """ + oldFoldername + """ to """ + newFoldername + """ , error code " + e.ErrorNumber.ToString)

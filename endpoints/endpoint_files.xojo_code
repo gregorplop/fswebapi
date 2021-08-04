@@ -77,8 +77,7 @@ Protected Class endpoint_files
 		  fileError = DeleteFSobject(file)
 		  
 		  if fileError = 0 then
-		    WorkerThread.SocketRef.PrepareResponseHeaders_MethodExecuted
-		    WorkerThread.SocketRef.RespondOK(false)
+		    WorkerThread.SocketRef.RespondOK
 		  else
 		    WorkerThread.SocketRef.RespondInError(422 , "Error deleting file, code " + fileError.ToString)
 		  end if
@@ -111,6 +110,7 @@ Protected Class endpoint_files
 		  dim Readable as Boolean = false  // it's not guaranteed that a file is readable until we actually read from it
 		  dim FileSize as Integer = file.Length
 		  dim chunk as String
+		  dim n as Integer = 4  // multiplier of default chunk size to read from file->write to socket
 		  
 		  try
 		    
@@ -122,15 +122,15 @@ Protected Class endpoint_files
 		    
 		    while not stream.EndOfFile
 		      
-		      chunk = stream.Read(ipsc_Lib.SocketChunkSize * 4)  // 4 is just a guess
-		      WorkerThread.YieldToNext
+		      chunk = stream.Read(ipsc_Lib.SocketChunkSize * n)  // adjust n to taste
+		      //WorkerThread.YieldToNext
+		      
+		      if not WorkerThread.SocketRef.IsConnected then exit while  // freezes on connection drops without it, in this exact place
 		      WorkerThread.SocketRef.Write(chunk)
-		      WorkerThread.YieldToNext
 		      WorkerThread.BytesSent = WorkerThread.BytesSent + chunk.Bytes
-		      WorkerThread.YieldToNext
-		      WorkerThread.SocketRef.Flush
-		      WorkerThread.YieldToNext
-		      if not WorkerThread.SocketRef.IsConnected then exit while
+		      
+		      WorkerThread.SocketRef.Flush  // without this, it is all one big data packet
+		      
 		      WorkerThread.YieldToNext
 		      
 		    wend
@@ -148,6 +148,13 @@ Protected Class endpoint_files
 		  end try
 		  
 		  stream.Close
+		  
+		  // make sure the last packet has been sent
+		  while WorkerThread.SocketRef.IsConnected and WorkerThread.SocketRef.BytesLeftToSend > 0
+		    WorkerThread.YieldToNext
+		  wend
+		  
+		  // close the socket here, closing it on the socket's last SendComplete has caused some mis-timings
 		  WorkerThread.SocketRef.Disconnect
 		  WorkerThread.SocketRef.Close
 		End Sub
@@ -186,7 +193,7 @@ Protected Class endpoint_files
 		        stream.Close
 		        fileError = DeleteFSobject(file)
 		        if fileError <> 0 then
-		          DebugMsg("POST: Error deleting file after IO error: " + fileError.ToString , CurrentMethodName , true)
+		          DebugMsg("POST/PUT: Error deleting file after IO error: " + fileError.ToString , CurrentMethodName , true)
 		        end if
 		        WorkerThread.SocketRef.RespondInError(408)  // Request Timeout 
 		        Return
@@ -236,8 +243,7 @@ Protected Class endpoint_files
 		    
 		    file.Name = newFilename
 		    
-		    WorkerThread.SocketRef.PrepareResponseHeaders_MethodExecuted
-		    WorkerThread.SocketRef.RespondOK(false)
+		    WorkerThread.SocketRef.RespondOK
 		    
 		  Catch e as IOException
 		    WorkerThread.SocketRef.RespondInError(403 , "Error renaming """ + oldFilename + """ to """ + newFilename + """ , error code " + e.ErrorNumber.ToString)
