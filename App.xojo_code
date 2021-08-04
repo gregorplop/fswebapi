@@ -31,8 +31,9 @@ Inherits ServiceApplication
 		  
 		  // process startup parameters
 		  if not ProcessCmdLineArgs(argsdict , ExitMsg , ExitCode) then
-		    System.DebugLog(ExitMsg + " --The service will now quit!")
-		    Print ExitMsg + " --The service will now quit!"
+		    dim FatalMsg as String = ExitMsg + " --The service will now quit!"
+		    System.DebugLog(FatalMsg)
+		    Print FatalMsg
 		    Quit(ExitCode)
 		  end if
 		  

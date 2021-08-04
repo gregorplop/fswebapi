@@ -88,8 +88,8 @@ Protected Module ipsc_Lib
 	#tag Method, Flags = &h0
 		Sub DebugMsg(Message as string, CallingMethod as string, PrintMsg as Boolean = false)
 		  if Debug then
-		    dim intMicroseconds as Integer = System.Microseconds
-		    dim msg as String = CallingMethod + " : " + intMicroseconds.ToString + " : " + Message
+		    dim intMilliseconds as Integer = System.Microseconds / 1000
+		    dim msg as String = CallingMethod + " : " + intMilliseconds.ToString + " : " + Message
 		    System.DebugLog(msg)
 		    if PrintMsg then Print msg
 		  end if
