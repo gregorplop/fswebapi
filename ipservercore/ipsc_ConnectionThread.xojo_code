@@ -24,7 +24,7 @@ Inherits Thread
 	#tag Method, Flags = &h0
 		Sub Constructor(byref socket as ipsc_Connection)
 		  SocketRef = socket
-		  Priority = 2  // adjust to taste
+		  Priority = 1  // adjust to taste, empirically lower for better concurrency
 		  
 		End Sub
 	#tag EndMethod

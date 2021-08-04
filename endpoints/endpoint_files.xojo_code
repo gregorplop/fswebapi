@@ -123,7 +123,7 @@ Protected Class endpoint_files
 		    while not stream.EndOfFile
 		      
 		      chunk = stream.Read(ipsc_Lib.SocketChunkSize * n)  // adjust n to taste
-		      //WorkerThread.YieldToNext
+		      WorkerThread.YieldToNext
 		      
 		      if not WorkerThread.SocketRef.IsConnected then exit while  // freezes on connection drops without it, in this exact place
 		      WorkerThread.SocketRef.Write(chunk)

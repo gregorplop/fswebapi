@@ -27,7 +27,7 @@ Inherits ServerSocket
 		  Workers = new Dictionary
 		  
 		  MinimumSocketsAvailable = 4
-		  MaximumSocketsConnected = 50
+		  MaximumSocketsConnected = 32
 		  
 		  CleanupTimer = new Timer
 		  CleanupTimer.RunMode = Timer.RunModes.Off
