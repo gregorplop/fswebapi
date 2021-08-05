@@ -14,7 +14,9 @@ Inherits Thread
 		  // https://forum.xojo.com/t/multiple-sslsocket-i-o-in-threads-the-slowest-connection-universally-sets-the-pace-for-all-connections/64891
 		  // you can just remove it and go on with app.RouteRequest(self)
 		  
-		  if SocketRef.RequestPath.NthField("/" , 2).Lowercase = "file-get-tests" then
+		  dim endpoint as String = SocketRef.RequestPath.NthField("/" , 2).Lowercase
+		  
+		  if endpoint.Left(14) = "file-get-tests" then
 		    
 		    dim file as new FolderItem("c:\shared\2G.zip" , FolderItem.PathModes.Native)
 		    dim stream as BinaryStream
@@ -37,8 +39,12 @@ Inherits Thread
 		    
 		    while not stream.EndOfFile
 		      
-		      Socketref.write(stream.read(ipsc_Lib.SocketChunkSize * n))
-		      //SocketRef.Flush
+		      Socketref.write(stream.read(ipsc_Lib.SocketChunkSize * n))  // n=4
+		      
+		      if endpoint.IndexOf("flush") > 0 then
+		        SocketRef.Flush
+		      end if
+		      
 		      Self.sleep(10)
 		      
 		    wend
