@@ -132,6 +132,7 @@ Protected Class endpoint_files
 		      WorkerThread.SocketRef.Flush  // without this, it is all one big data packet
 		      
 		      WorkerThread.YieldToNext
+		      //WorkerThread.Sleep(10)  // either this or yieldtonext's
 		      
 		    wend
 		    
