@@ -129,6 +129,7 @@ Protected Class endpoint_files
 		      WorkerThread.SocketRef.Write(chunk)
 		      WorkerThread.BytesSent = WorkerThread.BytesSent + chunk.Bytes
 		      
+		      if not WorkerThread.SocketRef.IsConnected then exit while  // freezes on connection drops without it, in this exact place
 		      WorkerThread.SocketRef.Flush  // without this, it is all one big data packet
 		      
 		      WorkerThread.YieldToNext
@@ -162,8 +163,11 @@ Protected Class endpoint_files
 		  wend
 		  
 		  // close the socket here, closing it on the socket's last SendComplete has caused some mis-timings
-		  WorkerThread.SocketRef.Disconnect
-		  WorkerThread.SocketRef.Close
+		  
+		  if not WorkerThread.SocketRef.SSLEnabled then // if not ssl, close it here. if sll, it's gonna close by itself?
+		    WorkerThread.SocketRef.Disconnect
+		    WorkerThread.SocketRef.Close
+		  end if
 		End Sub
 	#tag EndMethod
 
