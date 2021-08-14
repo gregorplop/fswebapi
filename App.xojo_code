@@ -169,6 +169,7 @@ Inherits ServiceApplication
 		    
 		    dim SSLFile as FolderItem
 		    dim SSLRejectFile as FolderItem
+		    dim SSLkeypass as String = ""
 		    
 		    if not argsdict.HasKey("sslcert") then
 		      ErrorMsg = "SSL Mode enabled without defining Combined Key/Certificate file"
@@ -229,8 +230,20 @@ Inherits ServiceApplication
 		      SSLRejectFile = nil
 		    end if
 		    
+		    if argsdict.HasKey("sslkeypass") then
+		      if argsdict.Value("sslkeypass").StringValue.Trim = "" then
+		        ErrorMsg = "SSL Key password parameter has no value!"
+		        ExitCode = 14
+		        Return false
+		      end if
+		      
+		      SSLkeypass = argsdict.Value("sslkeypass").StringValue  // password clearly visible, maybe encode it to something?
+		      
+		    end if
+		    
 		    Server.SSLCertificateFile = new FolderItem(SSLFile)
 		    Server.SSLCertificateRejectionFile = if(IsNull(SSLRejectFile) , nil , new FolderItem(SSLRejectFile))
+		    Server.SSLCertificatePassword = SSLkeypass
 		    Server.SSLEnabled = true
 		    
 		  else // no sslenable but an SSL-related parameter defined, this ommission causes a fatal init error
