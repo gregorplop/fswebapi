@@ -12,6 +12,13 @@ Inherits SSLSocket
 		Sub DataAvailable()
 		  DebugMsg("connection " + Handle.ToString + " - bytes = " + BytesAvailable.ToString , CurrentMethodName , true)
 		  
+		  if Lookahead.Bytes = 0 and SSLConnected then // empty data block, more data is needed for decryption
+		    StagnantIncomingData = true // according to the SSLSocket documentation
+		    Return
+		  else
+		    StagnantIncomingData = false
+		  end if
+		  
 		  DataAvailableEventsFired = DataAvailableEventsFired + 1
 		  DataAvailableLastFired = System.Microseconds
 		  
@@ -37,7 +44,7 @@ Inherits SSLSocket
 		  
 		  try
 		    
-		    if BytesAvailable > 0 then
+		    if BytesAvailable > 0  then  
 		      GetWorker.ReceiveBuffer.Append(Read(BytesAvailable))  // move incoming data to worker's receive buffer
 		    end if
 		    
@@ -360,6 +367,10 @@ Inherits SSLSocket
 		ServerRef As ipsc_Server
 	#tag EndProperty
 
+	#tag Property, Flags = &h0
+		StagnantIncomingData As Boolean = false
+	#tag EndProperty
+
 
 	#tag ViewBehavior
 		#tag ViewProperty
@@ -511,6 +522,14 @@ Inherits SSLSocket
 			InitialValue=""
 			Type="String"
 			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="StagnantIncomingData"
+			Visible=false
+			Group="Behavior"
+			InitialValue="false"
+			Type="Boolean"
+			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

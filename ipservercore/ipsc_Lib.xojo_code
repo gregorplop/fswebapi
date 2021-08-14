@@ -237,6 +237,24 @@ Protected Module ipsc_Lib
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h1
+		Protected Function SSLModeString(mode as SSLSocket.SSLConnectionTypes) As string
+		  select case mode
+		  case SSLSocket.SSLConnectionTypes.SSLv23
+		    Return "SSLv23"
+		  case SSLSocket.SSLConnectionTypes.TLSv1
+		    Return "TLSv1.0"
+		  case SSLSocket.SSLConnectionTypes.TLSv11
+		    Return "TLSv1.1"
+		  case SSLSocket.SSLConnectionTypes.TLSv12
+		    Return "SSLv1.2"
+		  else
+		    Return "Invalid"
+		  end select
+		  
+		End Function
+	#tag EndMethod
+
 
 	#tag Property, Flags = &h1
 		Protected Debug As Boolean = false
@@ -254,7 +272,7 @@ Protected Module ipsc_Lib
 	#tag Constant, Name = SocketChunkSize, Type = Double, Dynamic = False, Default = \"1048576", Scope = Protected
 	#tag EndConstant
 
-	#tag Constant, Name = Version, Type = String, Dynamic = False, Default = \"0.9", Scope = Protected
+	#tag Constant, Name = Version, Type = String, Dynamic = False, Default = \"1.0", Scope = Protected
 	#tag EndConstant
 
 

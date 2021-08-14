@@ -37,10 +37,16 @@ Inherits ServiceApplication
 		    Quit(ExitCode)
 		  end if
 		  
+		  
 		  Server.Listen
 		  
 		  print "Working with root folder : " + RootFolder.NativePath
 		  print "Server listening at port : " + Server.Port.ToString
+		  print "SSL Enabled              : " + server.SSLEnabled.ToString
+		  print "SSL Mode                 : " + if(Server.SSLEnabled , ipsc_Lib.SSLModeString(server.SSLConnectionType) , "not applicable")
+		  print "SSL Combined Key/Cert    : " + if(IsNull(server.SSLCertificateFile) , "none" , server.SSLCertificateFile.NativePath)
+		  print "SSL Key/Cert password    : " + if(server.SSLCertificatePassword = "" , "none" , "Yes")
+		  print "SSL Rejection File       : " + if(IsNull(server.SSLCertificateRejectionFile) , "none" , server.SSLCertificateRejectionFile.NativePath)
 		  print "Debug mode set to        : " + ipsc_Lib.Debug.ToString
 		  Print "fswebapi version         : " + app.Version
 		  Print "ipservercore version     : " + ipsc_Lib.Version
@@ -158,6 +164,107 @@ Inherits ServiceApplication
 		      Return False
 		    end if
 		  end if
+		  
+		  if argsdict.HasKey("sslenable") then  // ssl mode enabled
+		    
+		    dim SSLFile as FolderItem
+		    dim SSLRejectFile as FolderItem
+		    
+		    if not argsdict.HasKey("sslcert") then
+		      ErrorMsg = "SSL Mode enabled without defining Combined Key/Certificate file"
+		      ExitCode = 8
+		      Return false
+		    else
+		      SSLFile = new FolderItem(argsdict.Value("sslcert").StringValue.Trim , FolderItem.PathModes.Native)
+		    end if
+		    
+		    if IsNull(SSLFile) then
+		      ErrorMsg = "SSL Combined Key/Certificate file path is invalid"
+		      ExitCode = 9
+		      Return false
+		    end if
+		    
+		    if SSLFile.Exists = false or SSLFile.IsReadable = false then
+		      ErrorMsg = "SSL Combined Key/Certificate file is missing or is unreadable"
+		      ExitCode = 10
+		      Return false
+		    end if
+		    
+		    if not argsdict.HasKey("sslmode") then
+		      Server.SSLConnectionType = SSLSocket.SSLConnectionTypes.TLSv12
+		    else
+		      
+		      select case argsdict.Value("sslmode").StringValue.Lowercase
+		      case "tls1"
+		        Server.SSLConnectionType = SSLSocket.SSLConnectionTypes.TLSv1
+		      case "tls11"
+		        Server.SSLConnectionType = SSLSocket.SSLConnectionTypes.TLSv11
+		      case "tls12"
+		        Server.SSLConnectionType = SSLSocket.SSLConnectionTypes.TLSv12
+		      else
+		        ErrorMsg = "SSL Mode not set to a valid value: tls1,tls11,tls12"
+		        ExitCode = 11
+		        Return false
+		      end select
+		      
+		    end if
+		    
+		    
+		    if argsdict.HasKey("sslreject") then
+		      SSLRejectFile = new FolderItem(argsdict.Value("sslreject").StringValue.Trim , FolderItem.PathModes.Native)
+		      
+		      if IsNull(SSLRejectFile) then
+		        ErrorMsg = "SSL Rejection file path is invalid"
+		        ExitCode = 12
+		        Return false
+		      end if
+		      
+		      if SSLRejectFile.Exists = false or SSLRejectFile.IsReadable = false then
+		        ErrorMsg = "SSL Rejection file is missing or is unreadable"
+		        ExitCode = 13
+		        Return false
+		      end if
+		      
+		    else
+		      SSLRejectFile = nil
+		    end if
+		    
+		    Server.SSLCertificateFile = new FolderItem(SSLFile)
+		    Server.SSLCertificateRejectionFile = if(IsNull(SSLRejectFile) , nil , new FolderItem(SSLRejectFile))
+		    Server.SSLEnabled = true
+		    
+		  else // no sslenable but an SSL-related parameter defined, this ommission causes a fatal init error
+		    // all such errors give exit code = 7
+		    
+		    if argsdict.HasKey("sslcert") then
+		      ErrorMsg = "SSL Combined Key/Certificate file defined without --sslenable parameter!"
+		      ExitCode = 7
+		      Return false
+		    end if
+		    
+		    if argsdict.HasKey("sslreject") then
+		      ErrorMsg = "SSL Rejection file defined without --sslenable parameter!"
+		      ExitCode = 7
+		      Return false
+		    end if
+		    
+		    if argsdict.HasKey("sslmode") then
+		      ErrorMsg = "SSL Mode defined without --sslenable parameter!"
+		      ExitCode = 7
+		      Return false
+		    end if
+		    
+		    if argsdict.HasKey("sslkeypass") then
+		      ErrorMsg = "SSL Key password defined without --sslenable parameter!"
+		      ExitCode = 7
+		      Return false
+		    end if
+		    
+		    Server.SSLEnabled = False
+		    
+		  end if
+		  
+		  
 		  
 		  Return True
 		  

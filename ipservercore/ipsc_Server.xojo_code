@@ -7,6 +7,15 @@ Inherits ServerSocket
 		  
 		  dim NewConnection as new ipsc_Connection(self)
 		  
+		  NewConnection.CertificateFile = SSLCertificateFile
+		  NewConnection.CertificatePassword = SSLCertificatePassword
+		  NewConnection.CertificateRejectionFile = SSLCertificateRejectionFile
+		  
+		  NewConnection.SSLConnectionType = SSLConnectionType
+		  
+		  
+		  NewConnection.SSLEnabled = SSLEnabled
+		  
 		  Return NewConnection
 		  
 		End Function
@@ -105,11 +114,11 @@ Inherits ServerSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
-		SSLConnectionType As SSLSocket.SSLConnectionTypes
+		SSLConnectionType As SSLSocket.SSLConnectionTypes = SSLSocket.SSLConnectionTypes.TLSv1
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
-		SSLEnabled As Boolean
+		SSLEnabled As Boolean = false
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
@@ -164,6 +173,30 @@ Inherits ServerSocket
 			Group="Behavior"
 			InitialValue="10"
 			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="SSLCertificatePassword"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="SSLConnectionType"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="SSLSocket.SSLConnectionTypes"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="SSLEnabled"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="Boolean"
 			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
