@@ -125,6 +125,7 @@ Protected Class endpoint_folders
 		  
 		  try
 		    
+		    
 		    for i as Integer = 0 to fsobjectCount - 1
 		      
 		      fsobj = new FolderItem(folder.ChildAt(i , false))
@@ -147,6 +148,7 @@ Protected Class endpoint_folders
 		      ListContent = ListContent + String.FromArray(fsobjRecord , tab) + EndOfLine.Windows
 		      
 		    next i
+		    
 		    
 		  Catch e as IOException
 		    WorkerThread.SocketRef.RespondInError(422 , "Error compiling file list, code " + e.ErrorNumber.ToString)

@@ -78,14 +78,18 @@ Inherits SSLSocket
 		  
 		  if LastDataPacket2Send then
 		    
-		    if GetWorker.ThreadState = Thread.ThreadStates.NotRunning then
-		      ServerRef.Workers.Remove(Handle)
-		    Else  // thread might be still running for some reason
-		      GetWorker.Kill = true // hope the application code will honor the kill request
+		    if not IsNull(GetWorker) then  // avoid nilobjectexception when sending a lot of text data in the reply
+		      if GetWorker.ThreadState = Thread.ThreadStates.NotRunning then
+		        ServerRef.Workers.Remove(Handle)
+		      Else  // thread might be still running for some reason
+		        GetWorker.Kill = true // hope the application code will honor the kill request
+		      end if
 		    end if
 		    
-		    Disconnect
-		    close
+		    if not SSLEnabled then // ssl has its own timing for closing the connection
+		      Disconnect
+		      close
+		    end if
 		    
 		  end if
 		  
