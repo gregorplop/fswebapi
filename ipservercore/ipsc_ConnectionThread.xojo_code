@@ -10,57 +10,8 @@ Inherits Thread
 		  // usually you'd want to route the request first
 		  
 		  
-		  // the following block is for testing different strategies mentioned in
-		  // https://forum.xojo.com/t/multiple-sslsocket-i-o-in-threads-the-slowest-connection-universally-sets-the-pace-for-all-connections/64891
-		  // you can just remove it and go on with app.RouteRequest(self)
+		  app.RouteRequest(self)
 		  
-		  dim endpoint as String = SocketRef.RequestPath.NthField("/" , 2).Lowercase
-		  
-		  if endpoint.Left(14) = "file-get-tests" then
-		    
-		    dim file as new FolderItem("c:\shared\2G.zip" , FolderItem.PathModes.Native)
-		    dim stream as BinaryStream
-		    dim n as Integer = 4
-		    
-		    if IsNull(file) then 
-		      SocketRef.RespondInError(422)
-		      Return
-		    ElseIf not IsNull(file) and not file.Exists then
-		      SocketRef.RespondInError(422)
-		      Return
-		    end if
-		    
-		    stream = BinaryStream.Open(file)
-		    
-		    // ========================
-		    
-		    SocketRef.PrepareResponseHeaders_SendBinaryFile(file.Length , file.Name)
-		    SocketRef.RespondOK(true)
-		    
-		    while not stream.EndOfFile
-		      
-		      Socketref.write(stream.read(ipsc_Lib.SocketChunkSize * n))  // n=4
-		      
-		      if endpoint.IndexOf("flush") > 0 then
-		        SocketRef.Flush
-		      end if
-		      
-		      Self.sleep(10)
-		      
-		    wend
-		    
-		    stream.Close
-		    while SocketRef.IsConnected and SocketRef.BytesLeftToSend > 0
-		      YieldToNext
-		    wend
-		    
-		    SocketRef.Disconnect
-		    SocketRef.Close
-		    
-		    
-		  else
-		    app.RouteRequest(self)
-		  end if
 		  
 		End Sub
 	#tag EndEvent

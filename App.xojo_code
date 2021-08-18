@@ -84,7 +84,7 @@ Inherits ServiceApplication
 	#tag Method, Flags = &h0
 		Function ParseCmdLineArgs(args() as string) As Dictionary
 		  // WARNING: This mechanism has the following limitation:
-		  // no single parameter should not contain a space!
+		  // no parameter should contain a space!
 		  // example: --debug , --rootfolder=c:\shared : THESE ARE OK
 		  // counter-example: --rootfolder = "c:\my shared files" : THIS CANNOT BE PARSED SUCCESSFULLY 
 		  
@@ -296,14 +296,9 @@ Inherits ServiceApplication
 		    
 		    dim folders as new endpoint_folders(WorkerThread , RootFolder)
 		    
-		  case "opensockets" // just for debugging, method is irrelevant
+		  case "introspection" // just for debugging
 		    
-		    dim sockets() as TCPSocket = Server.ActiveConnections
-		    dim SocketHandles as String = "Active socket handles at " + DateTime.Now.SQLDateTime + EndOfLine + EndOfLine
-		    for i as Integer = 0 to Sockets.Ubound
-		      SocketHandles = SocketHandles + Sockets(i).Handle.ToString + EndOfLine
-		    next i
-		    WorkerThread.SocketRef.RespondOK(SocketHandles)
+		    dim introspection as new endpoint_introspection(WorkerThread)
 		    
 		  else
 		    WorkerThread.SocketRef.RespondInError(501)  // not implemented

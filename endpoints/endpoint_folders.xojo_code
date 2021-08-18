@@ -17,10 +17,6 @@ Protected Class endpoint_folders
 		  path.RemoveAt(0) // remove empty
 		  path.RemoveAt(0) // remove /folders endpoint
 		  
-		  if path.LastIndex < 0 then  // it was just /folders
-		    WorkerThread.SocketRef.RespondInError(422)  // unprocessable entity
-		    Return
-		  end if
 		  
 		  dim verb as string = WorkerThread.SocketRef.RequestVerb.Uppercase
 		  
@@ -44,7 +40,9 @@ Protected Class endpoint_folders
 		    
 		  next i
 		  
-		  folder = folder.Child(path(path.LastIndex))
+		  if path.LastIndex >= 0 then
+		    folder = folder.Child(path(path.LastIndex))
+		  end if
 		  
 		  if folder.Exists then
 		    if not folder.IsFolder then
