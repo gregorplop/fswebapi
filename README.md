@@ -44,7 +44,7 @@ For a server that has started with the following parameters:  --rootfolder=C:\Sh
 
 ### Notices, warnings, todo
 At this point, note the following:
-+ There is no SSL support
++ There is no SSL support (technically there is, as of 18/8, but it's still experimental due to different timing considerations in SSL-enabled SSLSocket. Will update the docs soon)
 + There is no authentication mechanism implemented
 + The application has only been tested on Windows
 + It is uncertain how the application behaves on unstable connections and heavy simultaneous loads
