@@ -10,7 +10,8 @@
 As the name suggests, this is a service application implementing a web API to access and manipulate filesystem objects on a specified path.
 Most of the methods are standard HTTP, but there are a few that are not.
 
-There are two endpoints, one for files and one for folders. You can see below a table for the methods implemented for each.
+There are two main endpoints, one for files and one for folders. There is an additional one for viewing the internal state of the application.
+You can see below a table for the methods implemented for each.
 
 | Endpoint   |   Method     | URL parameters required |  Description  |
 | ---------- | ------------ | ----------------------- | ------------- |
@@ -23,20 +24,39 @@ There are two endpoints, one for files and one for folders. You can see below a 
 | /folders/{path to folder} | LIST | none | Receive a tab-delimited list of the folder contents |
 | /folders/{path to folder} | DELETE | none | Delete the folder if empty |
 | /folders/{path to folder} | RENAME | **newname** | Rename the folder to *newname* value |
+| /introspection/opensockets | GET | none | Returns a list of open sockets at the time of execution |
 
 ### Server command line parameters
-At this point, the application needs to know two things: the root folder that's going to make accessible and the port it's going to be listening to. Optionally, it can be put in verbose (or debug) mode, printing messages when internal events occur.
+Minimally, the application needs to know two things: the root folder that's going to make accessible and the port it's going to be listening to. Optionally, it can be put in verbose (or debug) mode, printing messages when internal events occur.  
+There are additional options for enabling SSL support.
 
 | Parameter | Mandatory | Description |
 | ------- | --------| -------- |
 | --rootfolder={absolute folder path} | Yes | Makes anything /files or /folders refer to, relative to this folder |
 | --port={port number} | Yes | Server listens to this port |
 | --debug | No | Verbose mode |
+| --sslenable | No | Enables SSL support, requires the key/certificate file to be set |
+| --sslcert={absolute path to key/cert file} | Yes if --sslenable has been set | Points to the combined key/certificate file |
+| --sslmode={tls1,tls11,tls12} | No | Sets the TLS mode. Default is TLS 1.2 |
+| --sslreject={absolute path to SSL Rejection file} | No | Points to the certificate rejection file, if used |
+| --sslkeypass={password} | No | If the private key is encrypted, sets the decryption password. Plaintext value! |
 
 ### Examples
 For a server that has started with the following parameters:  --rootfolder=C:\Shared --port=8080   
 ...running a GET on */files/subfolder1/subfolder2/file.txt* will download the file located at C:\Shared\subfolder1\subfolder2\file.txt   
 ...running a RENAME on */files/sample.zip?newname=newsample.zip* will rename the file C:\Shared\sample.zip to newsample.zip
+
+### SSL Support
+There is support for HTTPS requests. Minimally, you enable it with the --sselenable parameter, having set the location of a combined key/certificate file.
+This file should contain both the key and the certificate in the following order:
+
+> -----BEGIN RSA PRIVATE KEY-----  
+> ...Certificate Data Here...  
+> -----END RSA PRIVATE KEY-----  
+>  
+> -----BEGIN CERTIFICATE-----  
+> ...Certificate Data Here...  
+> -----END CERTIFICATE-----  
 
 ### Notable architectural characteristics
 + Each request is processed in its own thread. Code that runs on the main thread has been limited to the absolutely necessary.
@@ -44,7 +64,7 @@ For a server that has started with the following parameters:  --rootfolder=C:\Sh
 
 ### Notices, warnings, todo
 At this point, note the following:
-+ There is no SSL support (technically there is, as of 18/8, but it's still experimental due to different timing considerations in SSL-enabled SSLSocket. Will update the docs soon)
++ SSL Support is still not thoroughly tested, there might be some edge cases causing certain requests to fail
 + There is no authentication mechanism implemented
 + The application has only been tested on Windows
 + It is uncertain how the application behaves on unstable connections and heavy simultaneous loads
