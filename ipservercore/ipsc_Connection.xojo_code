@@ -352,6 +352,10 @@ Inherits SSLSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
+		RequestPathArray() As string
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
 		RequestProtocol As String
 	#tag EndProperty
 

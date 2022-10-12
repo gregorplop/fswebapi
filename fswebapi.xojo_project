@@ -1,5 +1,5 @@
 Type=Console
-RBProjectVersion=2021.021
+RBProjectVersion=2022.02
 MinIDEVersion=20070100
 OrigIDEVersion=20210200
 Class=App;App.xojo_code;&h000000003BCB77FF;&h0000000000000000;false
@@ -43,6 +43,7 @@ DebuggerCommandLine=--rootfolder=c:\shared --port=8080 --debug
 UseGDIPlus=False
 UseBuildsFolder=True
 CopyRedistNextToWindowsEXE=False
+IncludePDB=False
 IsWebProject=False
 LinuxBuildArchitecture=1
 MacBuildArchitecture=1

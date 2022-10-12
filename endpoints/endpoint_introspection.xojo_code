@@ -14,17 +14,27 @@ Protected Class endpoint_introspection
 		  path.RemoveAt(0) // remove empty
 		  path.RemoveAt(0) // remove /introspection
 		  
-		  
-		  select case path(0)
+		  if path.LastIndex < 0 then   // url was /introspection
 		    
-		  case "opensockets"
-		    
-		    opensocketsGET
+		    WorkerThread.SocketRef.RespondOK(AvailableEndpoints)
 		    
 		  else
-		    WorkerThread.SocketRef.RespondInError(501)  // not implemented
-		  end select
-		  
+		    
+		    select case path(0)
+		      
+		    case "" // url was /introspection/
+		      
+		      WorkerThread.SocketRef.RespondOK(AvailableEndpoints)
+		      
+		    case "opensockets"
+		      
+		      opensocketsGET
+		      
+		    else
+		      WorkerThread.SocketRef.RespondInError(501)  // not implemented
+		    end select
+		    
+		  end if
 		End Sub
 	#tag EndMethod
 
@@ -53,6 +63,10 @@ Protected Class endpoint_introspection
 	#tag Property, Flags = &h21
 		Private WorkerThread As ipsc_ConnectionThread
 	#tag EndProperty
+
+
+	#tag Constant, Name = AvailableEndpoints, Type = String, Dynamic = False, Default = \"Available endpoints:\r\n\r\n/introspection/opensockets\r\n", Scope = Public
+	#tag EndConstant
 
 
 	#tag ViewBehavior
@@ -93,14 +107,6 @@ Protected Class endpoint_introspection
 			Visible=true
 			Group="Position"
 			InitialValue="0"
-			Type="Integer"
-			EditorType=""
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="WorkerThread"
-			Visible=false
-			Group="Behavior"
-			InitialValue=""
 			Type="Integer"
 			EditorType=""
 		#tag EndViewProperty
