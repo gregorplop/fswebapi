@@ -1,6 +1,8 @@
 # fswebapi
 #### Filesystem access & manipulation via an extension of the HTTP protocol
 
+![Status screen](https://raw.githubusercontent.com/gregorplop/fswebapi/main/screenshots/status1.png)
+
 ## There are two things of interest in this project:
 
 + The application itself, doing what it does
