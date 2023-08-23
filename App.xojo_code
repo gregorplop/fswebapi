@@ -22,7 +22,8 @@ Inherits ServiceApplication
 		  // occurs. So to be consistent, let's just call 
 		  // quit with our exit code.
 		  
-		  Server = new ipsc_Server 
+		  
+		  Server = new ipservercore.ipscServer
 		  
 		  dim ExitMsg as string
 		  dim ExitCode as Integer
@@ -37,19 +38,21 @@ Inherits ServiceApplication
 		    Quit(ExitCode)
 		  end if
 		  
+		  LocalAdminPasswd = EncodeBase64(infoplastique.GenerateRandomURLableString(20))
 		  
 		  Server.Listen
 		  
 		  print "Working with root folder : " + RootFolder.NativePath
 		  print "Server listening at port : " + Server.Port.ToString
 		  print "SSL Enabled              : " + server.SSLEnabled.ToString
-		  print "SSL Mode                 : " + if(Server.SSLEnabled , ipsc_Lib.SSLModeString(server.SSLConnectionType) , "not applicable")
+		  print "SSL Mode                 : " + if(Server.SSLEnabled , ipservercore.SSLModeString(server.SSLConnectionType) , "not applicable")
 		  print "SSL Combined Key/Cert    : " + if(IsNull(server.SSLCertificateFile) , "none" , server.SSLCertificateFile.NativePath)
 		  print "SSL Key/Cert password    : " + if(server.SSLCertificatePassword = "" , "none" , "Yes")
 		  print "SSL Rejection File       : " + if(IsNull(server.SSLCertificateRejectionFile) , "none" , server.SSLCertificateRejectionFile.NativePath)
-		  print "Debug mode set to        : " + ipsc_Lib.Debug.ToString
+		  print "Debug mode set to        : " + ipservercore.Debug.ToString
 		  Print "fswebapi version         : " + app.Version
-		  Print "ipservercore version     : " + ipsc_Lib.Version
+		  Print "ipservercore version     : " + ipservercore.Version
+		  print "Local admin password     : " + DecodeBase64(LocalAdminPasswd)
 		  Print "======================================================="
 		  print ""
 		  
@@ -80,6 +83,20 @@ Inherits ServiceApplication
 		End Function
 	#tag EndEvent
 
+
+	#tag Method, Flags = &h0
+		Function IsConfigurationFile(sample as FolderItem) As Boolean
+		  if IsNull(sample) then Return false
+		  
+		  if sample.Name = ConfigurationFilename then
+		    Return true
+		  else
+		    Return false
+		  end if
+		  
+		  
+		End Function
+	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function ParseCmdLineArgs(args() as string) As Dictionary
@@ -146,9 +163,9 @@ Inherits ServiceApplication
 		  
 		  // check for debug mode flag
 		  if argsdict.HasKey("debug") then // debug logging mode on --service will be quite verbose on the console and the debug log
-		    ipsc_Lib.debug = true
+		    ipservercore.debug = true
 		  else
-		    ipsc_Lib.Debug = false
+		    ipservercore.Debug = false
 		  end if
 		  
 		  // server port
@@ -285,62 +302,82 @@ Inherits ServiceApplication
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub RouteRequest(WorkerThread as ipsc_ConnectionThread)
-		  select case WorkerThread.SocketRef.RequestPath.NthField("/" , 2).Lowercase
+		Sub RemoveConfigurationFile(byref fsobjects() as FolderItem)
+		  dim i as Integer = 0
+		  
+		  while i <= fsobjects.LastIndex
+		    
+		    if IsNull(fsobjects(i)) then Continue
+		    if fsobjects(i).Name = ConfigurationFilename then 
+		      fsobjects.RemoveAt(i)
+		    else
+		      i = i + 1
+		    end if
+		    
+		  wend
+		   
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RouteRequest(WorkerThread as ipservercore.ipscConnectionThread)
+		  select case WorkerThread.SocketRef.RequestPathArray(0).lowercase 
 		    
 		  case "files"
 		    
-		    dim files as new endpoint_files(WorkerThread , RootFolder)
+		    dim files as new AppEndpoints.endpoint_files(WorkerThread , RootFolder)
 		    
 		  case "folders"
 		    
-		    dim folders as new endpoint_folders(WorkerThread , RootFolder)
+		    dim folders as new AppEndpoints.endpoint_folders(WorkerThread , RootFolder)
 		    
 		  case "introspection" // just for debugging
 		    
-		    dim introspection as new endpoint_introspection(WorkerThread)
+		    dim introspection as new AppEndpoints.endpoint_introspection(WorkerThread)
+		    
+		  case empty //just the root
+		    
+		    dim root as new AppEndpoints.endpoint_ROOT(WorkerThread , RootFolder)
 		    
 		  else
+		    
 		    WorkerThread.SocketRef.RespondInError(501)  // not implemented
+		    
 		  end select
 		  
 		End Sub
 	#tag EndMethod
 
 
-	#tag Note, Name = Endpoints
-		implemented endpoints:
+	#tag Note, Name = LICENSE
+		MIT License
 		
-		/files/(full filename path)
-		/folders/(folder path)
+		Copyright (c) 2023 Georgios Poulopoulos
 		
-		all paths are relative to the root folder defined with the --rootfolder command line parameter
+		Permission is hereby granted, free of charge, to any person obtaining a copy
+		of this software and associated documentation files (the "Software"), to deal
+		in the Software without restriction, including without limitation the rights
+		to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+		copies of the Software, and to permit persons to whom the Software is
+		furnished to do so, subject to the following conditions:
 		
+		The above copyright notice and this permission notice shall be included in all
+		copies or substantial portions of the Software.
+		
+		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+		IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+		FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+		AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+		LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+		OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+		SOFTWARE.
 		
 	#tag EndNote
 
-	#tag Note, Name = MIT License
-		MIT License
-		===============================================================================
-		Copyright (c) 2021 Georgios Poulopoulos
+	#tag Note, Name = Scratchpad
 		
-		Permission is hereby granted, free of charge, to any person obtaining 
-		a copy of this software and associated documentation files (the "Software"), 
-		to deal in the Software without restriction, including without limitation 
-		the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-		and/or sell copies of the Software, and to permit persons to whom the 
-		Software is furnished to do so, subject to the following conditions:
-		
-		The above copyright notice and this permission notice shall be included 
-		in all copies or substantial portions of the Software.
-		
-		THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-		OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-		FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-		THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-		LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-		OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
-		THE SOFTWARE.
+		--rootfolder=c:\shared --port=8080 --debug --sslenable --sslcert=c:\temp\test.crt
+		--rootfolder=c:\shared --port=8080 --debug
 		
 	#tag EndNote
 
@@ -350,12 +387,20 @@ Inherits ServiceApplication
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
+		LocalAdminPasswd As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
 		RootFolder As FolderItem
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
-		Server As ipsc_Server
+		Server As ipservercore.ipscServer
 	#tag EndProperty
+
+
+	#tag Constant, Name = ConfigurationFilename, Type = String, Dynamic = False, Default = \"fswebapi.conf", Scope = Public
+	#tag EndConstant
 
 
 	#tag ViewBehavior
@@ -366,6 +411,14 @@ Inherits ServiceApplication
 			InitialValue=""
 			Type="Boolean"
 			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="LocalAdminPasswd"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 	#tag EndViewBehavior
 End Class

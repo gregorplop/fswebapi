@@ -1,5 +1,5 @@
 #tag Class
-Protected Class ipsc_Connection
+Protected Class ipscConnection
 Inherits SSLSocket
 	#tag Event
 		Sub Connected()
@@ -27,13 +27,14 @@ Inherits SSLSocket
 		  if DataAvailableEventsFired = 1 then  // first part of the request: header is here
 		    RequestRaw = Read(Lookahead.IndexOf(EndOfLine.Windows + EndOfLine.Windows) + 4).Trim
 		    
-		    if not RecognizeRequest then  // invalid request, according to the rules implemented in RecognizeRequest
+		    if not ParseRequest then  // invalid request, according to the rules implemented in RecognizeRequest
 		      
 		      RespondInError(400)
+		      Return // that's all folks, nothing more to do afterwards
 		      
 		    else // request is valid, create the worker thread
 		      
-		      ServerRef.Workers.Value(Handle) = new ipsc_ConnectionThread(self)
+		      ServerRef.Workers.Value(Handle) = new ipscConnectionThread(self)
 		      GetWorker.Start
 		      
 		    end if
@@ -41,6 +42,7 @@ Inherits SSLSocket
 		  end if
 		  
 		  // worker thread should have been created, move data from connection receive buffer to worker buffer
+		  
 		  
 		  try
 		    
@@ -67,7 +69,8 @@ Inherits SSLSocket
 		    // not implemented
 		  end select
 		  
-		  close  // this has proven necessary here, prevents freeze on dropped connection while GET:/files/
+		  // the following close statement was found to cause a memory leak in ssl mode
+		  //close  // this has proven necessary here, prevents freeze on dropped connection while GET:/files/
 		  
 		End Sub
 	#tag EndEvent
@@ -76,22 +79,22 @@ Inherits SSLSocket
 		Sub SendComplete(UserAborted As Boolean)
 		  DebugMsg("connection " + Handle.ToString + " - UserAborted = " + UserAborted.ToString, CurrentMethodName , true)
 		  
-		  if LastDataPacket2Send then
-		    
-		    if not IsNull(GetWorker) then  // avoid nilobjectexception when sending a lot of text data in the reply
-		      if GetWorker.ThreadState = Thread.ThreadStates.NotRunning then
-		        ServerRef.Workers.Remove(Handle)
-		      Else  // thread might be still running for some reason
-		        GetWorker.Kill = true // hope the application code will honor the kill request
-		      end if
-		    end if
-		    
-		    if not SSLEnabled then // ssl has its own timing for closing the connection
-		      Disconnect
-		      close
-		    end if
-		    
-		  end if
+		  //if LastDataPacket2Send then
+		  //
+		  //if not IsNull(GetWorker) then  // avoid nilobjectexception when sending a lot of text data in the reply
+		  //if GetWorker.ThreadState = Thread.ThreadStates.NotRunning then
+		  //ServerRef.Workers.Remove(Handle)
+		  //Else  // thread might be still running for some reason
+		  //GetWorker.Kill = true // hope the application code will honor the kill request
+		  //end if
+		  //end if
+		  //
+		  //if not SSLEnabled then // ssl has its own timing for closing the connection
+		  //Disconnect
+		  //close
+		  //end if
+		  //
+		  //end if
 		  
 		  
 		End Sub
@@ -111,7 +114,7 @@ Inherits SSLSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub Constructor(byref initServerRef as ipsc_Server)
+		Sub Constructor(byref initServerRef as ipscServer)
 		  // Calling the overridden superclass constructor.
 		  // Note that this may need modifications if there are multiple constructor choices.
 		  // Possible constructor calls:
@@ -129,9 +132,9 @@ Inherits SSLSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function GetWorker() As ipsc_ConnectionThread
+		Function GetWorker() As ipscConnectionThread
 		  try
-		    return ipsc_ConnectionThread(ServerRef.Workers.Value(Handle))
+		    return ipscConnectionThread(ServerRef.Workers.Value(Handle))
 		  Catch e as KeyNotFoundException
 		    DebugMsg("worker " + Handle.ToString + " already removed" , CurrentMethodName , true)
 		    Return nil
@@ -140,55 +143,8 @@ Inherits SSLSocket
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h0
-		Sub PrepareResponseHeaders_ReceivedData()
-		  // prepares default headers for replying to have received data
-		  
-		  ResponseHeaders = new Dictionary
-		  
-		  ResponseHeaders.Value("Date") = ipsc_Lib.DateToRFC1123(nil)
-		  ResponseHeaders.Value("Server") = "ipscservercore/" + ipsc_Lib.Version
-		  ResponseHeaders.Value("Connection") = "close"
-		  ResponseHeaders.Value("Cache-Control") = "no-store"
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub PrepareResponseHeaders_SendBinaryFile(ByteSize as Integer, Filename as string)
-		  // prepares default headers for sending a binary file
-		  
-		  ResponseHeaders = new Dictionary
-		  
-		  ResponseHeaders.Value("Date") = ipsc_Lib.DateToRFC1123(nil)
-		  ResponseHeaders.Value("Server") = "ipscservercore/" + ipsc_Lib.Version
-		  ResponseHeaders.Value("Connection") = "close"
-		  ResponseHeaders.Value("Content-Length") = ByteSize
-		  ResponseHeaders.Value("Content-Type") = "application/octet-stream"
-		  ResponseHeaders.Value("Content-Disposition") = "attachment; filename=""" + Filename + """"
-		  ResponseHeaders.Value("Cache-Control") = "no-store"
-		  
-		  
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub PrepareResponseHeaders_SendTextReply(ByteSize as Integer)
-		  // prepares default headers for sending a binary file
-		  
-		  ResponseHeaders = new Dictionary
-		  
-		  ResponseHeaders.Value("Date") = ipsc_Lib.DateToRFC1123(nil)
-		  ResponseHeaders.Value("Server") = "ipscservercore/" + ipsc_Lib.Version
-		  ResponseHeaders.Value("Connection") = "close"
-		  ResponseHeaders.Value("Content-Length") = ByteSize
-		  ResponseHeaders.Value("Content-Type") = "text/plain"
-		  ResponseHeaders.Value("Cache-Control") = "no-store"
-		  
-		End Sub
-	#tag EndMethod
-
 	#tag Method, Flags = &h21
-		Private Function RecognizeRequest() As Boolean
+		Private Function ParseRequest() As Boolean
 		  // takes RequestRaw and tries to fill:
 		  // RequestVerb , RequestPath , RequestProtocol , RequestContentLength
 		  // if malformed request then returns false
@@ -205,7 +161,7 @@ Inherits SSLSocket
 		  if RequestPath.IndexOf("?") >= 0 then  // as it is, you cannot have more than a ? in the URL
 		    dim parameters(-1) as String = RequestPath.NthField("?" , 2).Split("&")
 		    for i as Integer = 0 to Parameters.LastIndex
-		      RequestParameters.Value(parameters(i).NthField("=" , 1).Lowercase) = parameters(i).NthField("=" , 2)
+		      RequestParameters.Value(DecodeURLComponent(parameters(i).NthField("=" , 1)).Lowercase) = DecodeURLComponent(parameters(i).NthField("=" , 2))
 		    next i
 		    RequestPath = RequestPath.NthField("?" , 1)
 		  end if
@@ -224,7 +180,28 @@ Inherits SSLSocket
 		    RequestContentLength = 0
 		  end if
 		  
-		  if RequestContentLength = 0 and BytesAvailable > 0 then Return false
+		  if RequestContentLength = 0 and BytesAvailable > 0 then Return false // WARNING: not necessarily applicable everywhere
+		  
+		  if RequestPath <> "" then // create the request path array for easier parsing
+		    dim pathFieldcount as Integer = RequestPath.CountFields("/")
+		    for i as Integer = 1 to pathFieldcount
+		      RequestPathArray.Add(DecodeURLComponent(RequestPath.NthField("/" , i) , Encodings.UTF8))
+		      if i > 1 and i < pathFieldcount and RequestPathArray(RequestPathArray.LastIndex) = "" then return false // disallow empty path components
+		    next i
+		    RequestPath = DecodeURLComponent(RequestPath , Encodings.UTF8)
+		  end if
+		  
+		  if RequestPathArray.LastIndex >= 0 then 
+		    if RequestPathArray(0) = "" then RequestPathArray.RemoveAt(0)
+		  end if
+		  
+		  if RequestPathArray.LastIndex >= 0 then 
+		    if RequestPathArray(RequestPathArray.LastIndex) = "" then call RequestPathArray.Pop
+		  end if
+		  
+		  if RequestPathArray.LastIndex < 0 then
+		    RequestPathArray.Add("")
+		  end if
 		  
 		  Return true
 		  
@@ -233,16 +210,65 @@ Inherits SSLSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub RespondInError(ErrorCode as integer, optional TextContent as String = "")
-		  dim response as String = "HTTP/1.1 " + ErrorCode.ToString + " " + ipsc_Lib.HTTP_ErrorMessage(ErrorCode) + EndOfLine.Windows
+		Sub PrepareResponseHeaders_ReceivedData()
+		  // prepares default headers for replying to have received data
 		  
-		  response = response + "Date: " + ipsc_Lib.DateToRFC1123(nil) + EndOfLine.Windows // now
-		  Response = response + "Server: ipscservercore/" + ipsc_Lib.Version + EndOfLine.Windows
+		  ResponseHeaders = new Dictionary
+		  
+		  ResponseHeaders.Value("Date") = ipservercore.DateToRFC1123(nil)
+		  ResponseHeaders.Value("Server") = "ipscservercore/" + ipservercore.Version
+		  ResponseHeaders.Value("Connection") = "close"
+		  ResponseHeaders.Value("Cache-Control") = "no-store"
+		  ResponseHeaders.Value("Content-Length") = 0
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub PrepareResponseHeaders_SendBinaryFile(ByteSize as Integer, Filename as string)
+		  // prepares default headers for sending a binary file
+		  
+		  ResponseHeaders = new Dictionary
+		  
+		  ResponseHeaders.Value("Date") = ipservercore.DateToRFC1123(nil)
+		  ResponseHeaders.Value("Server") = "ipscservercore/" + ipservercore.Version
+		  ResponseHeaders.Value("Connection") = "close"
+		  ResponseHeaders.Value("Content-Length") = ByteSize
+		  ResponseHeaders.Value("Content-Type") = "application/octet-stream"
+		  ResponseHeaders.Value("Content-Disposition") = "attachment; filename=""" + Filename + """"
+		  ResponseHeaders.Value("Cache-Control") = "no-store"
+		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub PrepareResponseHeaders_SendTextReply(ByteSize as Integer)
+		  // prepares default headers for sending a binary file
+		  
+		  ResponseHeaders = new Dictionary
+		  
+		  ResponseHeaders.Value("Date") = ipservercore.DateToRFC1123(nil)
+		  ResponseHeaders.Value("Server") = "ipscservercore/" + ipservercore.Version
+		  ResponseHeaders.Value("Connection") = "close"
+		  ResponseHeaders.Value("Content-Length") = ByteSize
+		  ResponseHeaders.Value("Content-Type") = "text/plain"
+		  ResponseHeaders.Value("Cache-Control") = "no-store"
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RespondInError(ErrorCode as integer, optional TextContent as String = "")
+		  dim response as String = "HTTP/1.1 " + ErrorCode.ToString + " " + ipservercore.HTTP_ErrorMessage(ErrorCode) + EndOfLine.Windows
+		  
+		  response = response + "Date: " + ipservercore.DateToRFC1123(nil) + EndOfLine.Windows // now
+		  Response = response + "Server: ipscservercore/" + ipservercore.Version + EndOfLine.Windows
 		  response = response + "Connection: close" + EndOfLine.Windows
+		  response = response + "Content-Length: " + TextContent.Bytes.ToString + EndOfLine.Windows
 		  
 		  if TextContent <> "" then
 		    response = response + "Content-Type: text/plain" + EndOfLine.Windows
-		    response = response + "Content-Length: " + TextContent.Bytes.ToString + EndOfLine.Windows
 		  end if
 		  
 		  response = response + EndOfLine.Windows
@@ -251,7 +277,7 @@ Inherits SSLSocket
 		    response = response + TextContent
 		  end if
 		  
-		  LastDataPacket2Send = true
+		  //LastDataPacket2Send = true
 		  
 		  Write(response)
 		  Flush
@@ -276,26 +302,26 @@ Inherits SSLSocket
 		  
 		  response = response + EndOfLine.Windows
 		  
-		  LastDataPacket2Send = not ContentFollows
+		  //LastDataPacket2Send = not ContentFollows
 		  
 		  Write(response)
 		  
-		  if LastDataPacket2Send then Flush
+		  //if LastDataPacket2Send then Flush
 		  
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub RespondOK(optional TextContent as string = "")
+		Sub RespondOK(optional TextContent as string = "", optional ContentType as string = "text/plain")
 		  dim response as String = "HTTP/1.1 200 OK" + EndOfLine.Windows
 		  
-		  response = response + "Date: " + ipsc_Lib.DateToRFC1123(nil) + EndOfLine.Windows // now
-		  Response = response + "Server: ipscservercore/" + ipsc_Lib.Version + EndOfLine.Windows
+		  response = response + "Date: " + ipservercore.DateToRFC1123(nil) + EndOfLine.Windows // now
+		  Response = response + "Server: ipscservercore/" + ipservercore.Version + EndOfLine.Windows
 		  response = response + "Connection: close" + EndOfLine.Windows
+		  response = response + "Content-Length: " + TextContent.Bytes.ToString + EndOfLine.Windows
 		  
 		  if TextContent <> "" then
-		    response = response + "Content-Type: text/plain" + EndOfLine.Windows
-		    response = response + "Content-Length: " + TextContent.Bytes.ToString + EndOfLine.Windows
+		    response = response + "Content-Type: " + ContentType + EndOfLine.Windows
 		  end if
 		  
 		  response = response + EndOfLine.Windows
@@ -304,7 +330,7 @@ Inherits SSLSocket
 		    response = response + TextContent
 		  end if
 		  
-		  LastDataPacket2Send = true
+		  //LastDataPacket2Send = true
 		  
 		  Write(response)
 		  Flush
@@ -323,13 +349,6 @@ Inherits SSLSocket
 			System.Microseconds
 		#tag EndNote
 		Private DataAvailableLastFired As integer = 0
-	#tag EndProperty
-
-	#tag Property, Flags = &h0
-		#tag Note
-			Signal to close the connection after last send
-		#tag EndNote
-		LastDataPacket2Send As Boolean = false
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
@@ -372,7 +391,7 @@ Inherits SSLSocket
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
-		ServerRef As ipsc_Server
+		ServerRef As ipscServer
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
@@ -489,14 +508,6 @@ Inherits SSLSocket
 			Group="Behavior"
 			InitialValue=""
 			Type="Integer"
-			EditorType=""
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="LastDataPacket2Send"
-			Visible=false
-			Group="Behavior"
-			InitialValue="false"
-			Type="Boolean"
 			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty

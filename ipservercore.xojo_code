@@ -1,5 +1,5 @@
 #tag Module
-Protected Module ipsc_Lib
+Protected Module ipservercore
 	#tag Method, Flags = &h1, CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit))
 		Protected Function DateToRFC1123(TheDate As DateTime = Nil) As Text
 		  // Returns a  in RFC 822 / 1123 format.
@@ -247,7 +247,7 @@ Protected Module ipsc_Lib
 		  case SSLSocket.SSLConnectionTypes.TLSv11
 		    Return "TLSv1.1"
 		  case SSLSocket.SSLConnectionTypes.TLSv12
-		    Return "SSLv1.2"
+		    Return "TLSv1.2"
 		  else
 		    Return "Invalid"
 		  end select
@@ -272,7 +272,7 @@ Protected Module ipsc_Lib
 	#tag Constant, Name = SocketChunkSize, Type = Double, Dynamic = False, Default = \"1048576", Scope = Protected
 	#tag EndConstant
 
-	#tag Constant, Name = Version, Type = String, Dynamic = False, Default = \"1.0", Scope = Protected
+	#tag Constant, Name = Version, Type = String, Dynamic = False, Default = \"1.5", Scope = Protected
 	#tag EndConstant
 
 

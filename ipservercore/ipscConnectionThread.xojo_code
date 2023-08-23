@@ -1,5 +1,5 @@
 #tag Class
-Protected Class ipsc_ConnectionThread
+Protected Class ipscConnectionThread
 Inherits Thread
 	#tag Event
 		Sub Run()
@@ -24,7 +24,7 @@ Inherits Thread
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub Constructor(byref socket as ipsc_Connection)
+		Sub Constructor(byref socket as ipscConnection)
 		  SocketRef = socket
 		  Priority = 1  // adjust to taste, empirically lower for better concurrency
 		  
@@ -77,7 +77,7 @@ Inherits Thread
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
-		SocketRef As ipsc_Connection
+		SocketRef As ipscConnection
 	#tag EndProperty
 
 

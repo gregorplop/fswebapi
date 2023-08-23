@@ -7,34 +7,20 @@ Protected Class endpoint_introspection
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub Constructor(byref initWorkerThread as ipsc_ConnectionThread)
+		Sub Constructor(byref initWorkerThread as ipservercore.ipscConnectionThread)
 		  WorkerThread = initWorkerThread
 		  
-		  dim path() as String = WorkerThread.SocketRef.RequestPath.Split("/")
-		  path.RemoveAt(0) // remove empty
-		  path.RemoveAt(0) // remove /introspection
-		  
-		  if path.LastIndex < 0 then   // url was /introspection
-		    
+		  if WorkerThread.SocketRef.RequestPathArray(0) = "introspection" and WorkerThread.SocketRef.RequestPathArray.LastIndex = 0 then
 		    WorkerThread.SocketRef.RespondOK(AvailableEndpoints)
 		    
-		  else
+		  elseif WorkerThread.SocketRef.RequestPathArray(1) = "opensockets" and WorkerThread.SocketRef.RequestPathArray.LastIndex = 1 then
+		    opensocketsGET
 		    
-		    select case path(0)
-		      
-		    case "" // url was /introspection/
-		      
-		      WorkerThread.SocketRef.RespondOK(AvailableEndpoints)
-		      
-		    case "opensockets"
-		      
-		      opensocketsGET
-		      
-		    else
-		      WorkerThread.SocketRef.RespondInError(501)  // not implemented
-		    end select
+		  else
+		    WorkerThread.SocketRef.RespondInError(501)  // not implemented
 		    
 		  end if
+		  
 		End Sub
 	#tag EndMethod
 
@@ -61,7 +47,7 @@ Protected Class endpoint_introspection
 
 
 	#tag Property, Flags = &h21
-		Private WorkerThread As ipsc_ConnectionThread
+		Private WorkerThread As ipservercore.ipscConnectionThread
 	#tag EndProperty
 
 

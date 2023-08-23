@@ -1,11 +1,11 @@
 #tag Class
-Protected Class ipsc_Server
+Protected Class ipscServer
 Inherits ServerSocket
 	#tag Event
 		Function AddSocket() As TCPSocket
 		  DebugMsg("new connection requested - open sockets: " + str(ActiveConnections.Ubound + 1) , CurrentMethodName , true)
 		  
-		  dim NewConnection as new ipsc_Connection(self)
+		  dim NewConnection as new ipscConnection(self)
 		  
 		  NewConnection.CertificateFile = SSLCertificateFile
 		  NewConnection.CertificatePassword = SSLCertificatePassword
@@ -41,10 +41,24 @@ Inherits ServerSocket
 		  CleanupTimer = new Timer
 		  CleanupTimer.RunMode = Timer.RunModes.Off
 		  CleanupTimer.Period = 1000
-		  AddHandler CleanupTimer.Action , AddressOf HandlerCleanupTimerAction
+		  AddHandler CleanupTimer.Action , WeakAddressOf HandlerCleanupTimerAction
 		  
 		  
 		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Destructor()
+		  RemoveHandler CleanupTimer.Action , WeakAddressOf HandlerCleanupTimerAction
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetStartTimestamp() As DateTime
+		  Return ServerStartTime
+		  
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
@@ -55,9 +69,13 @@ Inherits ServerSocket
 		  try
 		    
 		    for i as Integer = 0 to WorkerHandles.LastIndex
-		      if ipsc_ConnectionThread(Workers.Value(WorkerHandles(i).IntegerValue)).ThreadState = Thread.ThreadStates.NotRunning and _
-		        ipsc_ConnectionThread(Workers.Value(WorkerHandles(i).IntegerValue)).Fired then
+		      
+		      // check for workers that have: 1.fired 2.finished running
+		      if ipscConnectionThread(Workers.Value(WorkerHandles(i).IntegerValue)).ThreadState = Thread.ThreadStates.NotRunning and _
+		        ipscConnectionThread(Workers.Value(WorkerHandles(i).IntegerValue)).Fired then
+		        
 		        Workers.Remove(WorkerHandles(i).IntegerValue)
+		        
 		      end if
 		    next i
 		    
@@ -74,6 +92,7 @@ Inherits ServerSocket
 	#tag Method, Flags = &h0
 		Sub Listen()
 		  CleanupTimer.RunMode = Timer.RunModes.Multiple
+		  ServerStartTime = DateTime.Now
 		  
 		  // Calling the overridden superclass method.
 		  Super.Listen()
@@ -99,6 +118,10 @@ Inherits ServerSocket
 
 	#tag Property, Flags = &h21
 		Private CleanupTimer As Timer
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private ServerStartTime As DateTime
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
@@ -181,21 +204,27 @@ Inherits ServerSocket
 			Group="Behavior"
 			InitialValue=""
 			Type="String"
-			EditorType=""
+			EditorType="MultiLineEditor"
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="SSLConnectionType"
 			Visible=false
 			Group="Behavior"
-			InitialValue=""
+			InitialValue="SSLSocket.SSLConnectionTypes.TLSv1"
 			Type="SSLSocket.SSLConnectionTypes"
-			EditorType=""
+			EditorType="Enum"
+			#tag EnumValues
+				"1 - SSLv23"
+				"3 - TLSv1"
+				"4 - TLSv11"
+				"5 - TLSv12"
+			#tag EndEnumValues
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="SSLEnabled"
 			Visible=false
 			Group="Behavior"
-			InitialValue=""
+			InitialValue="false"
 			Type="Boolean"
 			EditorType=""
 		#tag EndViewProperty
