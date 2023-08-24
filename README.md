@@ -10,7 +10,7 @@
 
 ## The fswebapi application
 As the name suggests, this is a service application implementing a web API to access and manipulate filesystem objects on a specified path.
-Most of the methods are standard HTTP, but there are a few that are not.
+Most methods are standard HTTP, but there are a few that are not.
 
 There are two main endpoints, one for files and one for folders. There is an additional one for viewing the internal state of the application.
 You can see below a table for the methods implemented for each.
@@ -22,9 +22,11 @@ You can see below a table for the methods implemented for each.
 | /files/{path to file} | PUT | none | Upload a file, overwrite if exists |
 | /files/{path to file} | DELETE | none | Delete the file |
 | /files/{path to file} | RENAME | **newname** | Rename the file to *newname* value |
+| /files/{path to file} | APPEND | **appendeol** | Appends payload to file. Optionally adds EOL at the end, as dictated by the *appendeol* parameter: [native , windows , macos , unix] |
+| /files/{path to file} | INFO | none | Returns a JSON list with file information |
 | /folders/{path to folder} | POST | none | Create the folder |
 | /folders/{path to folder} | LIST | none | Receive a tab-delimited list of the folder contents |
-| /folders/{path to folder} | DELETE | none | Delete the folder if empty |
+| /folders/{path to folder} | DELETE | **deletemode** | Delete the folder. Delete modes are: simple=delete folder if empy(default). recursive=delete all contents, recursively. clear=delete contents recursively, but leave folder |
 | /folders/{path to folder} | RENAME | **newname** | Rename the folder to *newname* value |
 | /introspection/opensockets | GET | none | Returns a list of open sockets at the time of execution |
 
