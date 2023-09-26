@@ -11,6 +11,7 @@ Class=endpoint_introspection;AppEndpoints/endpoint_introspection.xojo_code;&h000
 Class=endpoint_ROOT;AppEndpoints/endpoint_ROOT.xojo_code;&h0000000038B2DFFF;&h000000002C14D7FF;false
 Module=ipservercore;ipservercore.xojo_code;&h000000005205D7FF;&h0000000000000000;false
 Class=ipscServer;ipservercore/ipscServer.xojo_code;&h0000000062617FFF;&h000000005205D7FF;false
+Class=picoACL;ipservercore/picoACL.xojo_code;&h000000003ED35FFF;&h000000005205D7FF;false
 Class=ipscConnection;ipservercore/ipscConnection.xojo_code;&h000000003E03BFFF;&h000000005205D7FF;false
 Class=ipscConnectionThread;ipservercore/ipscConnectionThread.xojo_code;&h000000003DBE6FFF;&h000000005205D7FF;false
 Module=infoplastique;infoplastique.xojo_code;&h000000004DDB3FFF;&h0000000000000000;false
@@ -40,7 +41,7 @@ MDICaption=
 DefaultEncoding=&h0
 AppIcon=fswebapi.xojo_resources;&h0
 OSXBundleID=com.infoplastique.fswebapi
-DebuggerCommandLine=--rootfolder=C:\testdata\fswebapi.shared --port=8080 --debug
+DebuggerCommandLine=--rootfolder=C:\testdata\fswebapi.shared --port=8080 --debug --acl=c:\temp\test.acl
 UseGDIPlus=False
 UseBuildsFolder=True
 CopyRedistNextToWindowsEXE=False

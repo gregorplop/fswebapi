@@ -38,8 +38,6 @@ Inherits ServiceApplication
 		    Quit(ExitCode)
 		  end if
 		  
-		  LocalAdminPasswd = EncodeBase64(infoplastique.GenerateRandomURLableString(20))
-		  
 		  Server.Listen
 		  
 		  print "Working with root folder : " + RootFolder.NativePath
@@ -52,7 +50,7 @@ Inherits ServiceApplication
 		  print "Debug mode set to        : " + ipservercore.Debug.ToString
 		  Print "fswebapi version         : " + app.Version
 		  Print "ipservercore version     : " + ipservercore.Version
-		  print "Local admin password     : " + DecodeBase64(LocalAdminPasswd)
+		  print "Authentication & ACL     : " + if(server.ACLEnabled , Server.ACLDatabaseFile.NativePath , "none")
 		  Print "======================================================="
 		  print ""
 		  
@@ -83,20 +81,6 @@ Inherits ServiceApplication
 		End Function
 	#tag EndEvent
 
-
-	#tag Method, Flags = &h0
-		Function IsConfigurationFile(sample as FolderItem) As Boolean
-		  if IsNull(sample) then Return false
-		  
-		  if sample.Name = ConfigurationFilename then
-		    Return true
-		  else
-		    Return false
-		  end if
-		  
-		  
-		End Function
-	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function ParseCmdLineArgs(args() as string) As Dictionary
@@ -295,28 +279,18 @@ Inherits ServiceApplication
 		  end if
 		  
 		  
+		  if argsdict.HasKey("acl") then  // acl support
+		    if not Server.EnableACL(new FolderItem(argsdict.Value("acl").StringValue.Trim , FolderItem.PathModes.Native) , empty) then // no acl password supported currently
+		      ErrorMsg = "ACL validation error"
+		      ExitCode = 15
+		      Return false
+		    end if
+		  end if
+		  
 		  
 		  Return True
 		  
 		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub RemoveConfigurationFile(byref fsobjects() as FolderItem)
-		  dim i as Integer = 0
-		  
-		  while i <= fsobjects.LastIndex
-		    
-		    if IsNull(fsobjects(i)) then Continue
-		    if fsobjects(i).Name = ConfigurationFilename then 
-		      fsobjects.RemoveAt(i)
-		    else
-		      i = i + 1
-		    end if
-		    
-		  wend
-		   
-		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
@@ -397,10 +371,6 @@ Inherits ServiceApplication
 	#tag Property, Flags = &h0
 		Server As ipservercore.ipscServer
 	#tag EndProperty
-
-
-	#tag Constant, Name = ConfigurationFilename, Type = String, Dynamic = False, Default = \"fswebapi.conf", Scope = Public
-	#tag EndConstant
 
 
 	#tag ViewBehavior

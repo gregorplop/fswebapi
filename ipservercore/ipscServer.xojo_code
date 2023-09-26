@@ -55,6 +55,29 @@ Inherits ServerSocket
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function EnableACL(ACLFile as FolderItem, ACLPasswd as String) As Boolean
+		  dim acl as new picoACL(ACLFile , ACLPasswd)
+		  
+		  if acl.Validate then
+		    
+		    ACLDatabaseFile = new FolderItem(ACLFile)
+		    ACLDatabaseFilePasswd = ACLPasswd
+		    ACLEnabled = true
+		    
+		  else
+		    
+		    ACLDatabaseFile = nil
+		    ACLDatabaseFilePasswd = empty
+		    ACLEnabled = false
+		    
+		  end if
+		  
+		  
+		  Return ACLEnabled
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Function GetStartTimestamp() As DateTime
 		  Return ServerStartTime
 		  
@@ -115,6 +138,18 @@ Inherits ServerSocket
 		Event ipscError(ErrorCode as integer, err as RuntimeException)
 	#tag EndHook
 
+
+	#tag Property, Flags = &h0
+		ACLDatabaseFile As FolderItem
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		ACLDatabaseFilePasswd As String
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		ACLEnabled As Boolean = false
+	#tag EndProperty
 
 	#tag Property, Flags = &h21
 		Private CleanupTimer As Timer

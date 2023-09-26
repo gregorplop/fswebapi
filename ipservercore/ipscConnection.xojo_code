@@ -102,6 +102,18 @@ Inherits SSLSocket
 
 
 	#tag Method, Flags = &h21
+		Private Function AuthenticateUser() As Boolean
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Function AuthorizeRequest() As Boolean
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
 		Private Sub Constructor()
 		  // Calling the overridden superclass constructor.
 		  // Note that this may need modifications if there are multiple constructor choices.
@@ -180,6 +192,7 @@ Inherits SSLSocket
 		    RequestContentLength = 0
 		  end if
 		  
+		  // this is problematic --should be reviewed
 		  if RequestContentLength = 0 and BytesAvailable > 0 then Return false // WARNING: not necessarily applicable everywhere
 		  
 		  if RequestPath <> "" then // create the request path array for easier parsing
@@ -191,17 +204,14 @@ Inherits SSLSocket
 		    RequestPath = DecodeURLComponent(RequestPath , Encodings.UTF8)
 		  end if
 		  
-		  if RequestPathArray.LastIndex >= 0 then 
+		  if RequestPathArray.LastIndex > 0 then 
 		    if RequestPathArray(0) = "" then RequestPathArray.RemoveAt(0)
 		  end if
 		  
-		  if RequestPathArray.LastIndex >= 0 then 
+		  if RequestPathArray.LastIndex > 0 then 
 		    if RequestPathArray(RequestPathArray.LastIndex) = "" then call RequestPathArray.Pop
 		  end if
 		  
-		  if RequestPathArray.LastIndex < 0 then
-		    RequestPathArray.Add("")
-		  end if
 		  
 		  Return true
 		  
