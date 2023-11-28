@@ -1,6 +1,7 @@
 #tag Class
 Protected Class ipscConnection
 Inherits SSLSocket
+	#tag CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit))
 	#tag Event
 		Sub Connected()
 		  DebugMsg("ipsc_connection: new connection - handle = " + Handle.ToString , CurrentMethodName , true)
@@ -103,12 +104,18 @@ Inherits SSLSocket
 
 	#tag Method, Flags = &h21
 		Private Function AuthenticateUser() As Boolean
+		  // todo
+		  
+		  Return true
 		  
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h21
 		Private Function AuthorizeRequest() As Boolean
+		  // todo
+		  
+		  Return true
 		  
 		End Function
 	#tag EndMethod
@@ -211,6 +218,11 @@ Inherits SSLSocket
 		  if RequestPathArray.LastIndex > 0 then 
 		    if RequestPathArray(RequestPathArray.LastIndex) = "" then call RequestPathArray.Pop
 		  end if
+		  
+		  if RequestPathArray.LastIndex < 0 then
+		    RequestPathArray.Add ""
+		  end if
+		  
 		  
 		  
 		  Return true

@@ -50,7 +50,7 @@ Inherits ServiceApplication
 		  print "Debug mode set to        : " + ipservercore.Debug.ToString
 		  Print "fswebapi version         : " + app.Version
 		  Print "ipservercore version     : " + ipservercore.Version
-		  print "Authentication & ACL     : " + if(server.ACLEnabled , Server.ACLDatabaseFile.NativePath , "none")
+		  print "Authentication & ACL     : " + if(server.ACLEnabled , Server.ACLDatabaseFile.NativePath , "none") + " // WARNING: ACL NOT CURRENTLY IMPLEMENTED!!"
 		  Print "======================================================="
 		  print ""
 		  
