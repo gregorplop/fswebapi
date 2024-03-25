@@ -64,7 +64,7 @@ This file should contain both the key and the certificate in the following order
 
 ### Notable architectural characteristics
 + Each request is processed in its own thread. Code that runs on the main thread has been limited to the absolutely necessary.
-+ File upload/download operations do not accumulate the entirety of the file content before doing their read/write to disk. Data is processed immediatelly in chunks, one-stream-to-another, therefore memory overhead always remains low.
++ File upload/download operations do not accumulate the entirety of the file content before doing their read/write to disk. ~~Data is processed immediatelly in chunks, one-stream-to-another, therefore memory overhead always remains low.~~ <- As of version 3, not true anymore for GET: This implementation was based on flushing the socket buffer periodically. That led to instability for some reason.
 
 ### Notices, warnings, todo
 At this point, note the following:
