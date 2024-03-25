@@ -272,7 +272,7 @@ Protected Module ipservercore
 	#tag Constant, Name = SocketChunkSize, Type = Double, Dynamic = False, Default = \"1048576", Scope = Protected
 	#tag EndConstant
 
-	#tag Constant, Name = Version, Type = String, Dynamic = False, Default = \"1.5", Scope = Protected
+	#tag Constant, Name = Version, Type = String, Dynamic = False, Default = \"2.0", Scope = Protected
 	#tag EndConstant
 
 

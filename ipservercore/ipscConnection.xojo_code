@@ -1,11 +1,12 @@
 #tag Class
 Protected Class ipscConnection
 Inherits SSLSocket
-	#tag CompatibilityFlags = (TargetConsole and (Target32Bit or Target64Bit)) or  (TargetWeb and (Target32Bit or Target64Bit)) or  (TargetDesktop and (Target32Bit or Target64Bit)) or  (TargetIOS and (Target64Bit)) or  (TargetAndroid and (Target64Bit))
+	#tag CompatibilityFlags = ( TargetConsole and ( Target32Bit or Target64Bit ) ) or ( TargetWeb and ( Target32Bit or Target64Bit ) ) or ( TargetDesktop and ( Target32Bit or Target64Bit ) ) or ( TargetIOS and ( Target64Bit ) ) or ( TargetAndroid and ( Target64Bit ) )
 	#tag Event
 		Sub Connected()
 		  DebugMsg("ipsc_connection: new connection - handle = " + Handle.ToString , CurrentMethodName , true)
 		  
+		  ServerRef.ConnectionCount = ServerRef.ConnectionCount + 1
 		End Sub
 	#tag EndEvent
 
@@ -39,6 +40,7 @@ Inherits SSLSocket
 		      GetWorker.Start
 		      
 		    end if
+		    
 		    
 		  end if
 		  

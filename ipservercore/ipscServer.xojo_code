@@ -13,7 +13,6 @@ Inherits ServerSocket
 		  
 		  NewConnection.SSLConnectionType = SSLConnectionType
 		  
-		  
 		  NewConnection.SSLEnabled = SSLEnabled
 		  
 		  Return NewConnection
@@ -155,6 +154,10 @@ Inherits ServerSocket
 		Private CleanupTimer As Timer
 	#tag EndProperty
 
+	#tag Property, Flags = &h0
+		ConnectionCount As Integer
+	#tag EndProperty
+
 	#tag Property, Flags = &h21
 		Private ServerStartTime As DateTime
 	#tag EndProperty
@@ -257,6 +260,22 @@ Inherits ServerSocket
 		#tag EndViewProperty
 		#tag ViewProperty
 			Name="SSLEnabled"
+			Visible=false
+			Group="Behavior"
+			InitialValue="false"
+			Type="Boolean"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="ACLDatabaseFilePasswd"
+			Visible=false
+			Group="Behavior"
+			InitialValue=""
+			Type="String"
+			EditorType="MultiLineEditor"
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="ACLEnabled"
 			Visible=false
 			Group="Behavior"
 			InitialValue="false"

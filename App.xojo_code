@@ -1,18 +1,6 @@
 #tag Class
 Protected Class App
-Inherits ServiceApplication
-	#tag Event
-		Sub Pause()
-		  // Only gets called on Windows. We should pause.
-		End Sub
-	#tag EndEvent
-
-	#tag Event
-		Sub Resume()
-		  // Only gets called on Windows. We should resume.
-		End Sub
-	#tag EndEvent
-
+Inherits ConsoleApplication
 	#tag Event
 		Function Run(args() as String) As Integer
 		  // This is the apps's main execution point.
@@ -33,7 +21,6 @@ Inherits ServiceApplication
 		  // process startup parameters
 		  if not ProcessCmdLineArgs(argsdict , ExitMsg , ExitCode) then
 		    dim FatalMsg as String = ExitMsg + " --The service will now quit!"
-		    System.DebugLog(FatalMsg)
 		    Print FatalMsg
 		    Quit(ExitCode)
 		  end if
@@ -64,14 +51,6 @@ Inherits ServiceApplication
 		  
 		  Quit(0)
 		End Function
-	#tag EndEvent
-
-	#tag Event
-		Sub Stop(shuttingDown as Boolean)
-		  // This gets called on all platforms (but the
-		  // shuttingDown parameter is only valid on Windows).
-		  // We should do our cleanup here.
-		End Sub
 	#tag EndEvent
 
 	#tag Event

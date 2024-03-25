@@ -303,7 +303,7 @@ Protected Class endpoint_files
 		  dim Readable as Boolean = false  // it's not guaranteed that a file is readable until we actually read from it
 		  dim FileSize as Integer = file.Length
 		  dim chunk as String
-		  dim n as Integer = 4  // multiplier of default chunk size to read from file->write to socket
+		  dim n as Integer = 10  // multiplier of default chunk size to read from file->write to socket
 		  dim stream as BinaryStream
 		  
 		  try
@@ -317,19 +317,20 @@ Protected Class endpoint_files
 		    while not stream.EndOfFile
 		      
 		      chunk = stream.Read(ipservercore.SocketChunkSize * n)  // adjust n to taste, default is 4
-		      WorkerThread.YieldToNext
 		      
-		      if not WorkerThread.SocketRef.IsConnected then exit while  // freezes on connection drops without it, in this exact place
 		      WorkerThread.SocketRef.Write(chunk)
 		      WorkerThread.BytesSent = WorkerThread.BytesSent + chunk.Bytes
 		      
-		      if not WorkerThread.SocketRef.IsConnected then exit while  // freezes on connection drops without it, in this exact place
-		      WorkerThread.SocketRef.Flush  // without this, it is all one big data packet
+		      // the commented-out code below was a bad approach: a cancelled download made the entire app completely unresponsive
+		      // the original idea was to read a chunk from the file and write it to the socket, but it had the nasty side-effect mentioned above
+		      //WorkerThread.SocketRef.Flush  // without this, it is all one big data packet
+		      //WorkerThread.YieldToNext
 		      
-		      WorkerThread.YieldToNext
-		      //WorkerThread.Sleep(10)  // either this or yieldtonext's
+		      WorkerThread.Sleep(100)
 		      
 		    wend
+		    
+		    stream.Close
 		    
 		  Catch e as IOException
 		    
@@ -349,19 +350,18 @@ Protected Class endpoint_files
 		    
 		  end try
 		  
-		  stream.Close
 		  
 		  // make sure the last packet has been sent
 		  while WorkerThread.SocketRef.IsConnected and WorkerThread.SocketRef.BytesLeftToSend > 0
-		    WorkerThread.YieldToNext
+		    WorkerThread.Sleep(100)
 		  wend
 		  
-		  // close the socket here, closing it on the socket's last SendComplete has caused some mis-timings
 		  
-		  if not WorkerThread.SocketRef.SSLEnabled then // if not ssl, close it here. if sll, it's gonna close by itself?
-		    WorkerThread.SocketRef.Disconnect
-		    WorkerThread.SocketRef.Close
-		  end if
+		  // close the socket here, closing it on the socket's last SendComplete has caused some mis-timings
+		  //if not WorkerThread.SocketRef.SSLEnabled then // if not ssl, close it here. if sll, it's gonna close by itself?
+		  //WorkerThread.SocketRef.Disconnect
+		  //WorkerThread.SocketRef.Close
+		  //end if
 		  
 		  
 		End Sub
@@ -535,6 +535,7 @@ Protected Class endpoint_files
 		    
 		    created.Add file
 		    
+		    
 		    while WorkerThread.BytesReceived < WorkerThread.SocketRef.RequestContentLength
 		      
 		      if WorkerThread.GetReceiveBufferChunks > 0 then
@@ -546,7 +547,7 @@ Protected Class endpoint_files
 		        
 		      end if
 		      
-		      // receive timeout check
+		      //receive timeout check
 		      if DateTime.Now.SecondsFrom1970 - lastTX.SecondsFrom1970 > ipservercore.TimeoutOnReceive then // transfer has timed out
 		        stream.Close
 		        call infoplastique.DeleteFSitems(created)
@@ -555,9 +556,12 @@ Protected Class endpoint_files
 		      end if
 		      
 		      // no op
-		      WorkerThread.YieldToNext
+		      //WorkerThread.YieldToNext   // this doesn't work very well
+		      
+		      WorkerThread.Sleep(2)  // this works best
 		      
 		    wend
+		    
 		    
 		    stream.Flush
 		    stream.Close
