@@ -64,13 +64,13 @@ This file should contain both the key and the certificate in the following order
 
 ### Notable architectural characteristics
 + Each request is processed in its own thread. Code that runs on the main thread has been limited to the absolutely necessary.
-+ File upload/download operations do not accumulate the entirety of the file content before doing their read/write to disk. ~~Data is processed immediatelly in chunks, one-stream-to-another, therefore memory overhead always remains low.~~ <- As of version 3, not true anymore for GET: This implementation was based on flushing the socket buffer periodically. That led to instability for some reason.
++ ~~File upload/download operations do not accumulate the entirety of the file content before doing their read/write to disk. Data is processed immediatelly in chunks, one-stream-to-another, therefore memory overhead always remains low.~~ <- As of version 3, not true anymore for GET: This implementation was based on flushing the socket buffer periodically. That led to the entire application becoming unresponsive when a client cancelled the download. 
 
 ### Notices, warnings, todo
 At this point, note the following:
 + SSL Support is still not thoroughly tested, there might be some edge cases causing certain requests to fail
-+ There is no authentication mechanism implemented
-+ The application has only been tested on Windows
++ There is no authentication/authorization mechanism implemented. Basic Auth is work in progress, but not soon.
++ The application has been tested mainly on Windows and much less on Debian 12. Never on MacOS.
 + It is uncertain how the application behaves on unstable connections and heavy simultaneous loads
 + At this moment, root folders containing spaces are not allowed in the --rootfolder parameter
 
